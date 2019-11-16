@@ -16,38 +16,32 @@ def pol2cart(rho, phi):
    return [x, y]
 
 
-def interpolateArc(startAngle, endAngle, center, radius, maxlength=1, maxangle=.2, clockwise=True):
+def interpolateArc(startAngle, endAngle, center, radius, clockwise=True, maxlength=1, maxangle=.2):
    #radius = math.sqrt((ceter(0)-end(0))**2 + (center(1)-end(1))**2)
-   ccwangle = endAngle - startAngle
-   if ccwangle <= 0: ccwangle += np.pi*2
-   if ccwangle >= 2*np.pi: ccwangle -= np.pi*2
-   cwangle = 2*np.pi - ccwangle
-   ccwlength = ccwangle*radius
-   cwlength = cwangle*radius
-   print(f'Clockwise angle is {round(cwangle, 4)}, Anti-clockwise angle is {round(ccwangle, 4)}')
-   print(f'Clockwise lenght is {round(cwlength, 4)}, Anti-clockwise lenght is {round(ccwlength, 4)}')
+   angle = endAngle - startAngle
+   if angle <= 0: angle += np.pi*2
+   if angle >= 2*np.pi: angle -= np.pi*2
+   if clockwise: angle = 2*np.pi - angle
+   length = angle*radius
 
    points = []
 
-   if clockwise:
-      lsegments = 0
-      asegments = 0
-      if cwlength >= maxlength:
-         lsegments = int(cwlength/maxlength)
-      if cwangle >= maxangle:
-         asegments = int(cwangle/maxangle)
+   lsegments = 0
+   asegments = 0
+   if length >= maxlength:
+      lsegments = int(length/maxlength)
+   if angle >= maxangle:
+      asegments = int(angle/maxangle)
 
-      arcstops = list(np.linspace(0, cwangle, max(lsegments,asegments)+1))
-      for arc in arcstops:
-         points.append(pol2cart(radius, startAngle - arc))
+   arcstops = list(np.linspace(0, angle, max(lsegments,asegments)+1))
+   for arc in arcstops:
+      points.append(pol2cart(radius, startAngle + arc * (1-2*clockwise)))
 
-
-   x, y = zip(*points)
-   plt.plot(*pol2cart(radius, startAngle), 'r*')
-   plt.plot(x, y)
-
-   plt.show()
+   return points
 
 
+points = interpolateArc(np.pi, np.pi/2, [0, 0], 50, True, 20, .2,)
 
-interpolateArc(np.pi, np.pi/2, [0, 0], 50, 20, .2)
+x, y = zip(*points)
+plt.plot(x, y)
+plt.show()
