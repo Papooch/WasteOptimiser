@@ -16,7 +16,7 @@ def pol2cart(rho, phi):
    return [x, y]
 
 
-def interpolateArc(startAngle, endAngle, center, radius, clockwise=True, maxlength=1, maxangle=.2):
+def interpolateArc(startAngle, endAngle, radius, clockwise=True, maxlength=1, maxangle=.2):
    #radius = math.sqrt((ceter(0)-end(0))**2 + (center(1)-end(1))**2)
    angle = endAngle - startAngle
    if angle <= 0: angle += np.pi*2
@@ -37,11 +37,18 @@ def interpolateArc(startAngle, endAngle, center, radius, clockwise=True, maxleng
    for arc in arcstops:
       points.append(pol2cart(radius, startAngle + arc * (1-2*clockwise)))
 
+   x, y = zip(*points)
+   plt.plot(x, y)
+   plt.show()
+
    return points
 
+if __name__ == "__main__":
+   pointpoints = []
+   pointpoints.append(interpolateArc(np.pi, np.pi/2, 50, True, 20, .2,))
+   pointpoints.append(interpolateArc(np.pi, np.pi/2, 50, False, 20, .2,))
 
-points = interpolateArc(np.pi, np.pi/2, [0, 0], 50, True, 20, .2,)
-
-x, y = zip(*points)
-plt.plot(x, y)
-plt.show()
+   for points in pointpoints:
+      x, y = zip(*points)
+      plt.plot(x, y)
+   plt.show()
