@@ -56,12 +56,12 @@ def interpolateArc(start, end, center, clockwise=True, maxlength=20, maxangle=.4
 
 
 class ShapeExtractor:
-   def __init__(self, gcode):
+   def __init__(self, gcode, suppressLeadIn = False, arcMaxAngle = 0.2, arcMaxLength = 10, leadInTolerance = 0.1):
       self.gcode = gcode
-      self.arcMaxAngle = 0
-      self.arcMaxLength = 0
-      self.supressLeadIn = False
-      self.leadInTolerance = 0.1
+      self.arcMaxAngle = arcMaxAngle
+      self.arcMaxLength = arcMaxLength
+      self.supressLeadIn = suppressLeadIn
+      self.leadInTolerance = leadInTolerance
 
       self._instructions = re.split("\s", self.gcode)
       self._shapeList = []
@@ -79,7 +79,7 @@ class ShapeExtractor:
             shape = np.array(shape)
             while np.linalg.norm(shape[0] - shape[-1]) >= self.leadInTolerance:
                shape = shape[1:]
-            outList.append(list(shape))
+            outList.append(shape.tolist())
          return outList
       return self._shapeList
 
@@ -105,16 +105,17 @@ class ShapeExtractor:
             elif code <= 5:
                if code == 00: # rapid move -> finish current shape
                   self._finish_shape()
-                  message = "pen up"
                   #TODO: Add exception checking
                   coord = [self._split_coordinates(next(inst_iterator), "X")[1], self._split_coordinates(next(inst_iterator), "Y")[1]]
                   self._go_straight(coord)
                   self._penDown = False
+                  message = "pen up"
                else: # something else, pen down
                   if self._penDown:
                      self._currentShape.append(self._coords.copy())
                   self._penDown = True
                   message = "pen down"
+               message += " [" + str(round(self._coords[0], 5)) + " " + str(round(self._coords[1], 5)) + "]"
 
                if code == 1: # straigh line (expexting X#.# Y#.#)
                   #TODO: add exception checking
@@ -130,7 +131,7 @@ class ShapeExtractor:
 
             else:
                continue
-            print(inst, message)
+            if 'debug' in globals() and debug: print(inst, message)
 
 
    def _go_straight(self, end):
@@ -147,7 +148,7 @@ class ShapeExtractor:
          start = self._coords
       else:
          start = [0, 0]       
-      points = interpolateArc(start, end, center, is_clockwise) #TODO: Add maxAngle and maxLength
+      points = interpolateArc(start, end, center, is_clockwise, self.arcMaxLength, self.arcMaxAngle)
       if not self._absoluteMove:
          points = [list(map(add, point, self._coords)) for point in points]
       self._currentShape.extend(points)
@@ -162,6 +163,7 @@ class ShapeExtractor:
          self._currentShape.append(self._coords.copy())
          self._shapeList.append(self._currentShape)
          self._currentShape = []
+         if 'debug' in globals() and debug: print("Shape finished")
 
 
    def _instruction_mode(self, inst):
@@ -187,8 +189,10 @@ class ShapeExtractor:
 if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
+   debug = True
+
    gcode = None
-   with open("../../gcode/4-hvezda.gcode", 'r') as f:
+   with open("../../gcode/2-drzak.gcode", 'r') as f:
       gcode = f.read()
 
    #print(split_gcode(gcode))
@@ -196,8 +200,10 @@ if __name__ == "__main__":
    xtr.supressLeadIn = True
    xtr.run()
 
-   for shape in xtr.get_shapes():
+   plt.axis('equal')
+
+   for shape in reversed(xtr.get_shapes()):
       x, y = zip(*shape)
-      plt.plot(x, y)
+      plt.fill(x, y)
 
    plt.show()

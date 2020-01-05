@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>678</width>
+    <height>593</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonTextBesideIcon</enum>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2">
+    <item>
+     <widget class="QGroupBox" name="gb_input">
+      <property name="title">
+       <string>Input</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="lb_input_path">
+           <property name="text">
+            <string>...path/to/gcode_files</string>
+           </property>
+           <property name="buddy">
+            <cstring>lb_input_path</cstring>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_input_browse">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Browse...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QListWidget" name="lw_input_list"/>
+       </item>
+       <item>
+        <widget class="QWidget" name="mplPreview" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>150</width>
+           <height>150</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>150</height>
+          </size>
+         </property>
+         <layout class="QVBoxLayout" name="mplPreviewLayout"/>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,1">
+      <item>
+       <widget class="QGroupBox" name="gb_workspace">
+        <property name="title">
+         <string>Workplace</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QPushButton" name="pb_workspace_add">
+             <property name="text">
+              <string>Add</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_workspace_remove">
+             <property name="text">
+              <string>Remove</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QWidget" name="mplWorkspace" native="true">
+           <layout class="QVBoxLayout" name="mplWorkspaceLayout"/>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QGroupBox" name="gb_settings">
+          <property name="title">
+           <string>Settings</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <layout class="QFormLayout" name="formLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="widthLabel">
+               <property name="text">
+                <string>Width (mm)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="sb_settings_width"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="heightLabel">
+               <property name="text">
+                <string>Height (mm)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="sb_settings_height"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="borderOffsetLabel">
+               <property name="text">
+                <string>Edge offset (mm)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="sb_settings_edge_offset"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="holeOffsetMmLabel">
+               <property name="text">
+                <string>Hole offset (mm)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QSpinBox" name="sb_settings_hole_offset"/>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="prefferedLocationLabel">
+               <property name="text">
+                <string>Preffered location</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QComboBox" name="cb_settings_location">
+               <item>
+                <property name="text">
+                 <string>Top left</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Top right</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Bottom left</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Bottom right</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gb_optimiser">
+          <property name="title">
+           <string>Optimiser</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <widget class="QPushButton" name="pb_optimiser_start">
+             <property name="text">
+              <string>Start</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_optimiser_history">
+             <property name="text">
+              <string>Show graph...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_optimiser_export">
+             <property name="text">
+              <string>Export gcode...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>678</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <tabstops>
+  <tabstop>pb_input_browse</tabstop>
+  <tabstop>lw_input_list</tabstop>
+  <tabstop>pb_workspace_add</tabstop>
+  <tabstop>pb_workspace_remove</tabstop>
+  <tabstop>sb_settings_width</tabstop>
+  <tabstop>sb_settings_height</tabstop>
+  <tabstop>sb_settings_edge_offset</tabstop>
+  <tabstop>sb_settings_hole_offset</tabstop>
+  <tabstop>cb_settings_location</tabstop>
+  <tabstop>pb_optimiser_start</tabstop>
+  <tabstop>pb_optimiser_export</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
