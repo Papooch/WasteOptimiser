@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 import modules.gcodeparser
 import modules.spaceoptimiser
@@ -15,17 +16,41 @@ class Api():
     def __init__(self):
         self.settings = Settings()
         self.logger = None
-        self.figurePreview   = None
-        self.figureWorkspace = None
-        self.ShapeExtractor = modules.gcodeparser.ShapeExtractor
+        self.figure_preview   = None
+        self.figure_workspace = None
+        self.optimiser = modules.spaceoptimiser.Optimiser()
+        self.selected_shape = None
 
-    def parseGcode(self, file, axes = None):
+    def getGcodes(self, folder = None):
+        """Returns a list of filenames from the given folder"""
+
+        if not folder: folder = self.settings.input_path
+        gcode_files = []
+        for item in os.listdir(folder):
+            if os.path.isfile(os.path.join(folder, item)):
+                gcode_files.append(item)
+        return gcode_files
+
+    def getShapeDimensions(self, shapes = None):
+        """Returns a tuple (w, h) containing the width and height of the last shape in the list
+            (because the biggest shape is usually cut out last)
+        """
+
+        if not shapes: shapes = self.selected_shape
+        x, y = zip(*shapes[-1])
+        return (max(x)-min(x), max(y)-min(y))
+
+    def getShapesFromGcode(self, file, axes = None):
+        """Returns a list of shapes [Shape1[...], Shape2[...]] or an empty list
+            if no shapes were found in the given file
+            #TODO: deprecate
+            If passed a pyplot axes, draws the found shapes
+        """
         gcode = None
         with open(file, 'r') as f:
             gcode = f.read()
         if gcode:
-            xtr = self.ShapeExtractor(gcode)
-            xtr.supressLeadIn = True
+            xtr = modules.gcodeparser.ShapeExtractor(gcode, suppressLeadIn=True)
             xtr.run()
 
         shapes = xtr.get_shapes()
@@ -39,6 +64,7 @@ class Api():
 if __name__ == "__main__":
     #api = Api()
     from main import *
-    
+
+
 
 

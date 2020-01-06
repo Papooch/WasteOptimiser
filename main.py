@@ -4,7 +4,6 @@ import gui.figures, gui.gui
 from PyQt5 import QtWidgets, QtCore
 
 import sys
-qtgui = QtWidgets.QApplication(sys.argv)
 
 # create api object
 wo = api.Api()
@@ -13,12 +12,18 @@ wo = api.Api()
 wo.figurePreview    = gui.figures.Figures()
 wo.figureWorkspace  = gui.figures.Figures()
 
-# create main gui window
-mainWindow = gui.gui.MainWindow(wo)
+show_gui = True
+if show_gui:
+    # create main gui window
+    qtgui = QtWidgets.QApplication(sys.argv)
+    mainWindow = gui.gui.MainWindow(wo)
 
-# attach figures to gui
-mainWindow.setupCanvases(wo.figurePreview.figure, wo.figureWorkspace.figure)
-mainWindow.setupCallbacks()
-mainWindow.show()
+    # attach figures to gui
+    mainWindow.setupCanvases(wo.figurePreview, wo.figureWorkspace)
+    mainWindow.setupCallbacks()
+    mainWindow.show()
 
-sys.exit(qtgui.exec_())
+    # fast startup stuff
+    mainWindow.openFolder('D:\Ondra\Stuff\OneDrive\VUT\DP\moje\gcode')
+
+    sys.exit(qtgui.exec_())

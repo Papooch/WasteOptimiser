@@ -18,3 +18,13 @@ class Figures():
         self.figure.tight_layout(pad=0)
         self.ax.axis('equal')
         self.ax.clear()
+    
+    def clear(self):
+        self.ax.clear()
+
+    def drawShapes(self, shapes, options = '-k'):
+        for shape in reversed(shapes):
+            self.draw(shape, options=options)
+
+    def draw(self, points, options = '-k'):
+        self.ax.plot(*zip(*points), options)
