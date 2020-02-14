@@ -25,5 +25,6 @@ if show_gui:
 
     # fast startup stuff
     mainWindow.openFolder('D:\Ondra\Stuff\OneDrive\VUT\DP\moje\gcode')
+    mainWindow.applySettings()
 
     sys.exit(qtgui.exec_())

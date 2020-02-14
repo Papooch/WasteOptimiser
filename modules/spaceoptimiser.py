@@ -37,8 +37,14 @@ class Optimiser:
         """
         holes = []
         for hole in self.holes:
-            holes.append(hole.coords)
+            holes.append(list(hole.exterior.coords))
+        return holes
 
     def setShape(self, shape):
         """Sets the working shape. Expecting a list of points"""
         self.shape = Polygon(shape)
+
+if __name__ == "__main__":
+    opt = Optimiser()
+    h = opt.getHoles()
+    print(h)

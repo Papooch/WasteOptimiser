@@ -8,6 +8,9 @@ from matplotlib.backends.backend_qt5agg import (
 import os
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(os.path.dirname(__file__), 'WasteOptimiserGUI.ui'))
 
+def clamp(val, minv, maxv):
+    return min(maxv, max(val, minv))
+
 class MainWindow(Ui_MainWindow, QMainWindow):
     def __init__(self, api):
         super(MainWindow, self).__init__()
@@ -15,6 +18,10 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.api = api
         self.drawing_mode = False
         self.drawn_shape = []
+        self.first_point = ()
+        self.last_point = ()
+        self.close_to_last = False
+        self.drawn_shape_handle = None
 
     ## FUNCTIONS ##
     def openFolder(self, folder):
@@ -70,13 +77,73 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
         self.figure_workspace.clear()
         self.figure_workspace.draw(self.api.optimiser.getBoardShape())
+        holes = self.api.optimiser.getHoles()
+        if holes:
+            self.figure_workspace.drawShapes(holes, options='b-')
         self.canvasWorkspace.draw()
 
     def startDrawing(self):
         self.drawing_mode = True
+        self.drawn_shape = []
+        self.last_point = ()
+        self.first_point = ()
+
+    def stopDrawing(self):
+        self.drawing_mode = False
+        self.figure_workspace.remove('last')
+        self.figure_workspace.remove('temp')
+        self.figure_workspace.remove('new_shape')
+        self.figure_workspace.remove('first_point')
+
+    def cancelShape(self):
+        self.stopDrawing()
+        self.canvasWorkspace.draw()
+
+    def finishShape(self):
+        self.stopDrawing()
+        self.drawn_shape.append(self.first_point)
+        self.api.optimiser.addHole(self.drawn_shape)
+        self.figure_workspace.drawShapes(self.api.optimiser.getHoles(), 'b-')
+        self.canvasWorkspace.draw()
 
     def workspaceMouseMotion(self, event):
         self.lb_workspace_info.setText(str(event.xdata) + " " + str(event.ydata) + " " + str(event.button))
+        if self.drawing_mode:
+            x = clamp(event.xdata, 0, self.api.optimiser.width)
+            y = clamp(event.ydata, 0, self.api.optimiser.height)
+            self.figure_workspace.remove('temp')
+            if not self.first_point:
+                self.figure_workspace.draw((x, y), options='r+', gid = 'temp')
+            else:
+                self.figure_workspace.draw((self.last_point, (x, y)), options='b--', gid = 'temp')
+                self.figure_workspace.remove('last')
+                if abs(x-self.first_point[0])<50 and abs(y-self.first_point[1])<50:
+                    self.close_to_last = True
+                    self.figure_workspace.draw((x, y), options='ro', gid = 'last')
+                else:
+                    self.close_to_last = False
+
+            self.canvasWorkspace.draw()
+
+    def workspaceMouseClicked(self, event):
+        if self.drawing_mode:
+            x = clamp(event.xdata, 0, self.api.optimiser.width)
+            y = clamp(event.ydata, 0, self.api.optimiser.height)
+            if event.button == 1: # left mouse button
+                self.figure_workspace.remove('new_shape')
+                if not self.first_point:
+                    self.first_point = (x, y)
+                    self.figure_workspace.draw(self.first_point, 'ro', gid='first_point')
+                if self.close_to_last:
+                    self.finishShape()
+                    return
+                else:
+                    self.last_point = (x, y)
+                    self.drawn_shape.append(self.last_point)
+                    self.figure_workspace.draw(self.drawn_shape, gid = 'new_shape')
+                    self.canvasWorkspace.draw()
+            elif event.button == 3: # right mouse button
+                self.cancelShape()
 
 
     ## SETUP ##
@@ -103,7 +170,6 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         # workspace figure callback
         self.canvasWorkspace.mpl_connect('motion_notify_event', self.workspaceMouseMotion)
         self.canvasWorkspace.mpl_connect('button_press_event', self.workspaceMouseClicked)
-
 
         
 

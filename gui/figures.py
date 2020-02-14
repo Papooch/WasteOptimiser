@@ -22,9 +22,21 @@ class Figures():
     def clear(self):
         self.ax.clear()
 
-    def drawShapes(self, shapes, options = '-k'):
+    def drawShapes(self, shapes, options = '-k', filled=False, gid = None):
         for shape in reversed(shapes):
-            self.draw(shape, options=options)
+            self.draw(shape, options, filled=filled, gid=gid)
 
-    def draw(self, points, options = '-k'):
-        self.ax.plot(*zip(*points), options)
+    def draw(self, points, options = '-k', filled=False, gid = None):
+        try:
+            if filled:
+                self.ax.fill(*zip(*points), options, gid=gid)
+            else:
+                self.ax.plot(*zip(*points), options, gid=gid)
+        except:
+            self.ax.plot(points[0], points[1], options, gid=gid)
+
+    def remove(self, gid):
+        for c in self.ax.lines:
+            if c.get_gid() == gid:
+                c.remove()
+
