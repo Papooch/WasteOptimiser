@@ -28,8 +28,37 @@ class Optimiser:
         return ((0, 0), (w, 0), (w, h), (0, h), (0, 0))
 
     def addHole(self, shape):
-        """Adds a hole. Expecting a list of points ((x, y), ...)"""
-        self.holes.append(Polygon(shape))
+        """Adds a hole. Expecting a list of points ((x, y), ...)
+            If the new hole intersects any existing one, it merges with it"""
+        new_hole = Polygon(shape)
+        holes_to_remove = []
+        for hole in self.holes:
+            if new_hole.intersects(hole):
+                new_hole = new_hole.union(hole)
+                holes_to_remove.append(hole)
+        for hole in holes_to_remove:
+            self.holes.remove(hole)
+        self.holes.append(new_hole)
+
+    def subtractHole(self, shape):
+        not_hole = Polygon(shape)
+        holes_to_remove = []
+        holes_to_add = []
+        for hole in self.holes:
+            if not_hole.contains(hole):
+                holes_to_remove.append(hole)
+            if not_hole.intersects(hole):
+                holes_to_add.append(hole.difference(not_hole))
+                holes_to_remove.append(hole)
+        for hole in holes_to_remove:
+            self.holes.remove(hole)
+        for hole in holes_to_add:
+            if hasattr(hole, "__getitem__"):
+            #if multiple holes result from one subtraction
+                for h in hole:
+                    self.holes.append(h)    
+            else:
+                self.holes.append(hole)
 
     def getHoles(self):
         """Returns the holes as list of lists of points
@@ -37,8 +66,17 @@ class Optimiser:
         """
         holes = []
         for hole in self.holes:
-            holes.append(list(hole.exterior.coords))
+            holes.append(list(hole.boundary.coords))
         return holes
+
+    def removeHole(self, hole):
+        self.holes.remove(hole)
+
+    def queryHole(self, point):
+        for hole in self.holes:
+            if Point(point[0], point[1]).within(hole):
+                return hole
+        return None
 
     def setShape(self, shape):
         """Sets the working shape. Expecting a list of points"""

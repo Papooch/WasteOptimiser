@@ -9,19 +9,29 @@ import os
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(os.path.dirname(__file__), 'WasteOptimiserGUI.ui'))
 
 def clamp(val, minv, maxv):
-    return min(maxv, max(val, minv))
+    if val is not None: return min(maxv, max(val, minv))
+    else: return 0
+
+class Mode():
+    none = 0
+    drawing = 1
+    subtracting = 2
+    deleting = 3
+    
 
 class MainWindow(Ui_MainWindow, QMainWindow):
     def __init__(self, api):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.api = api
-        self.drawing_mode = False
+        self.mode = Mode.none
         self.drawn_shape = []
         self.first_point = ()
         self.last_point = ()
         self.close_to_last = False
         self.drawn_shape_handle = None
+        self.info_message = ""
+        self.hole_to_remove = None
 
     ## FUNCTIONS ##
     def openFolder(self, folder):
@@ -83,67 +93,107 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.canvasWorkspace.draw()
 
     def startDrawing(self):
-        self.drawing_mode = True
+        self.mode = Mode.drawing
         self.drawn_shape = []
         self.last_point = ()
         self.first_point = ()
+        self.close_to_last = False
 
     def stopDrawing(self):
-        self.drawing_mode = False
+        self.mode = Mode.none
         self.figure_workspace.remove('last')
         self.figure_workspace.remove('temp')
         self.figure_workspace.remove('new_shape')
         self.figure_workspace.remove('first_point')
+        self.drawWorkspace()
+
+    def startSubtracting(self):
+        self.startDrawing()
+        self.mode = Mode.subtracting
+
+    def startDeleting(self):
+        self.mode = Mode.deleting
+
+    def stopDeleting(self):
+        self.mode = Mode.none
+        self.drawWorkspace()
 
     def cancelShape(self):
         self.stopDrawing()
         self.canvasWorkspace.draw()
 
     def finishShape(self):
-        self.stopDrawing()
         self.drawn_shape.append(self.first_point)
         self.api.optimiser.addHole(self.drawn_shape)
-        self.figure_workspace.drawShapes(self.api.optimiser.getHoles(), 'b-')
-        self.canvasWorkspace.draw()
+        self.stopDrawing()
+
+    def subtractShape(self):
+        self.drawn_shape.append(self.first_point)
+        self.api.optimiser.subtractHole(self.drawn_shape)
+        self.stopDrawing()
 
     def workspaceMouseMotion(self, event):
         self.lb_workspace_info.setText(str(event.xdata) + " " + str(event.ydata) + " " + str(event.button))
-        if self.drawing_mode:
-            x = clamp(event.xdata, 0, self.api.optimiser.width)
-            y = clamp(event.ydata, 0, self.api.optimiser.height)
+        x = clamp(event.xdata, 0, self.api.optimiser.width)
+        y = clamp(event.ydata, 0, self.api.optimiser.height)
+
+        if self.mode == Mode.drawing or self.mode == Mode.subtracting:
+            pointopt = 'b+'
+            lineopt = 'b--'
+            if self.mode == Mode.subtracting: pointopt = 'r+';lineopt = 'r--'
             self.figure_workspace.remove('temp')
             if not self.first_point:
-                self.figure_workspace.draw((x, y), options='r+', gid = 'temp')
+                self.figure_workspace.draw((x, y), options=pointopt, gid = 'temp')
             else:
-                self.figure_workspace.draw((self.last_point, (x, y)), options='b--', gid = 'temp')
+                self.figure_workspace.draw((self.last_point, (x, y)), options=lineopt, gid = 'temp')
                 self.figure_workspace.remove('last')
-                if abs(x-self.first_point[0])<50 and abs(y-self.first_point[1])<50:
+                if abs(x-self.first_point[0])<50 and abs(y-self.first_point[1])<50 and len(self.drawn_shape) > 2:
                     self.close_to_last = True
                     self.figure_workspace.draw((x, y), options='ro', gid = 'last')
                 else:
                     self.close_to_last = False
-
             self.canvasWorkspace.draw()
 
+        elif self.mode == Mode.deleting:
+            self.figure_workspace.remove('temp')
+            self.figure_workspace.draw((x, y), options='rX', gid = 'temp')
+            self.hole_to_remove = self.api.optimiser.queryHole((x, y))
+            if self.hole_to_remove:
+                self.figure_workspace.draw(self.hole_to_remove.boundary.coords, options='r-', gid='temp')
+            self.canvasWorkspace.draw()
+
+
     def workspaceMouseClicked(self, event):
-        if self.drawing_mode:
-            x = clamp(event.xdata, 0, self.api.optimiser.width)
-            y = clamp(event.ydata, 0, self.api.optimiser.height)
+        x = clamp(event.xdata, 0, self.api.optimiser.width)
+        y = clamp(event.ydata, 0, self.api.optimiser.height)
+        if self.mode == Mode.drawing or self.mode == Mode.subtracting:
+            shapeopt = 'b-'
+            lineopt = 'b--'
+            if self.mode == Mode.subtracting: shapeopt = 'r-'; lineopt = 'r--'
             if event.button == 1: # left mouse button
                 self.figure_workspace.remove('new_shape')
                 if not self.first_point:
                     self.first_point = (x, y)
                     self.figure_workspace.draw(self.first_point, 'ro', gid='first_point')
                 if self.close_to_last:
-                    self.finishShape()
+                    if self.mode == Mode.subtracting:
+                        self.subtractShape()
+                    else:
+                        self.finishShape()
                     return
                 else:
                     self.last_point = (x, y)
                     self.drawn_shape.append(self.last_point)
-                    self.figure_workspace.draw(self.drawn_shape, gid = 'new_shape')
+                    self.figure_workspace.draw(self.drawn_shape, options=shapeopt, gid = 'new_shape')
                     self.canvasWorkspace.draw()
             elif event.button == 3: # right mouse button
                 self.cancelShape()
+        elif self.mode == Mode.deleting:
+            if event.button == 1: # left mouse button
+                if self.hole_to_remove: self.api.optimiser.removeHole(self.hole_to_remove)
+            elif event.button == 3: # right mouse button
+                pass
+            self.stopDeleting()
 
 
     ## SETUP ##
@@ -166,6 +216,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.pb_settings_apply.clicked.connect(self.applySettings)
 
         self.pb_workspace_add.clicked.connect(self.startDrawing)
+        self.pb_workspace_subtract.clicked.connect(self.startSubtracting)
+        self.pb_workspace_remove.clicked.connect(self.startDeleting)
 
         # workspace figure callback
         self.canvasWorkspace.mpl_connect('motion_notify_event', self.workspaceMouseMotion)
