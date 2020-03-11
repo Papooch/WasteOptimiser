@@ -1,4 +1,5 @@
 from shapely.geometry import *
+from shapely import affinity
 
 if __package__ is None or __package__ == '':
     # uses current directory visibility
@@ -9,19 +10,49 @@ else:
 
 class Optimiser:
     def __init__(self):
-        self.width = 2400
-        self.height = 1400
-        self.edge_offset = 0
-        self.hole_offset = 0
-        self.holes = []
-        self.shape = None
-        self.position = [0, 0]
-        self.angle = 0
+        self.width = 2400       # width of the board
+        self.height = 1400      # height of the board
+        self.edge_offset = 0    # offset from edge of board
+        self.hole_offset = 0    # offset from hole
+        self.holes = []         # list of hole shapes in the board
+        self.shape = None       # shape to be placed
+        self.centroid = [0, 0]  # centroid of shape to be placed
+        self.position = [0, 0]  # offset position of shape to be placed
+        self.angle = 0          # angle (around centroid) of shape to be placed
 
-    def prepare(self):
+        self.startpolygons = [] # lsit of possible starting polygons (polygons along which boundaries to start optimisation)
+
+    def init_startpoly(self):
         _, _, radius = smallest_circle(self.shape.exterior.coords)
-        board = Polygon(self.getBoardShape())
-        return list(board.buffer(-radius).exterior.coords)
+
+        dilatedboard = Polygon(self.getBoardShape()).buffer(-radius)
+        dilatedholes = [hole.buffer(radius) for hole in self.holes]
+        dpolygon = dilatedboard
+        for dhole in dilatedholes:
+            dpolygon = dpolygon.difference(dhole)
+        self.startpolygons = []
+        if hasattr(dpolygon, "__getitem__"):
+        #if multiple holes result from one subtraction
+            for dpoly in dpolygon:
+                self.startpolygons.append(dpoly)    
+        else:
+            self.startpolygons.append(dpolygon)
+        
+        self.startpolygons.sort(key= lambda x: x.area)
+        
+        retpoly = []
+        for stp in self.startpolygons:
+            retpoly.append(list(stp.exterior.coords))
+        return retpoly
+
+    def add_startpoly(self):
+        pass
+
+    def begin(self):
+        beginpoly = self.startpolygons[0]
+        beginpoint = list(beginpoly.exterior.coords[0])
+        self.position = beginpoint
+        print(self.position)
 
     def step(self):
         pass
@@ -98,9 +129,18 @@ class Optimiser:
     def setShape(self, shape):
         """Sets the working shape. Expecting a list of points"""
         self.shape = Polygon(shape)
+        self.centroid = self.shape.centroid
 
     def getShape(self):
         return list(self.shape.boundary.coords)
+
+    def getShapeOriented(self):
+        rotated = affinity.rotate(self.shape, self.angle, origin='centroid')
+        translatedrotated = affinity.translate(rotated, self.position[0], self.position[1])
+        return list(translatedrotated.boundary.coords)
+
+    def getShapeDilated(self):
+        pass
 
 if __name__ == "__main__":
     opt = Optimiser()

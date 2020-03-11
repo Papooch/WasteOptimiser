@@ -96,10 +96,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         """Sets shape in the optimiser to the currently selected shape"""
         if self.api.selected_shape:
             self.api.optimiser.setShape(self.api.selected_shape[-1])
-            shape = self.api.optimiser.getShape()
-            rect = self.api.optimiser.prepare()
+            spolys = self.api.optimiser.init_startpoly()
+            self.api.optimiser.begin()
+            shape = self.api.optimiser.getShapeOriented()
             self.figure_workspace.draw(shape)
-            self.figure_workspace.draw(rect)
+            self.figure_workspace.drawShapes(spolys, ':r')
             self.canvasWorkspace.draw()
 
     def clearWorkspace(self):
