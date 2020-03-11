@@ -92,7 +92,23 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.figure_workspace.drawShapes(holes, options='b-')
         self.canvasWorkspace.draw()
 
+    def setShape(self):
+        """Sets shape in the optimiser to the currently selected shape"""
+        if self.api.selected_shape:
+            self.api.optimiser.setShape(self.api.selected_shape[-1])
+            shape = self.api.optimiser.getShape()
+            rect = self.api.optimiser.prepare()
+            self.figure_workspace.draw(shape)
+            self.figure_workspace.draw(rect)
+            self.canvasWorkspace.draw()
+
+    def clearWorkspace(self):
+        self.api.optimiser.__init__()
+        self.applySettings()
+
     def startDrawing(self):
+        self.info_message = 'Click to add a point, click near the first point to finish shape. Right click to cancel.'
+        self.lb_workspace_info.setText(self.info_message)
         self.mode = Mode.drawing
         self.drawn_shape = []
         self.last_point = ()
@@ -100,6 +116,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.close_to_last = False
 
     def stopDrawing(self):
+        self.info_message = ''
+        self.lb_workspace_info.setText(self.info_message)
         self.mode = Mode.none
         self.figure_workspace.remove('last')
         self.figure_workspace.remove('temp')
@@ -112,9 +130,13 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.mode = Mode.subtracting
 
     def startDeleting(self):
+        self.info_message = 'Click on a hole you want to delete. Right click to cancel.'
+        self.lb_workspace_info.setText(self.info_message)
         self.mode = Mode.deleting
 
     def stopDeleting(self):
+        self.info_message = ''
+        self.lb_workspace_info.setText(self.info_message)
         self.mode = Mode.none
         self.drawWorkspace()
 
@@ -133,9 +155,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.stopDrawing()
 
     def workspaceMouseMotion(self, event):
-        self.lb_workspace_info.setText(str(event.xdata) + " " + str(event.ydata) + " " + str(event.button))
         x = clamp(event.xdata, 0, self.api.optimiser.width)
         y = clamp(event.ydata, 0, self.api.optimiser.height)
+        self.lb_workspace_info.setText(self.info_message + ' [' + str(round(x, 2)) + ', ' + str(round(y, 2)) + ']')
 
         if self.mode == Mode.drawing or self.mode == Mode.subtracting:
             pointopt = 'b+'
@@ -218,6 +240,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.pb_workspace_add.clicked.connect(self.startDrawing)
         self.pb_workspace_subtract.clicked.connect(self.startSubtracting)
         self.pb_workspace_remove.clicked.connect(self.startDeleting)
+        self.pb_workspace_clear.clicked.connect(self.clearWorkspace)
+
+        self.pb_optimiser_start.clicked.connect(self.setShape)
 
         # workspace figure callback
         self.canvasWorkspace.mpl_connect('motion_notify_event', self.workspaceMouseMotion)

@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import pickle
 
 import modules.gcodeparser
 import modules.spaceoptimiser
@@ -59,6 +60,12 @@ class Api():
                 x, y = zip(*shape)
                 axes.plot(x, y)
         return shapes
+
+    def saveWorkspace(self, file):
+        pass
+
+    def loadWorkspace(self, file)
+        pass
 
 
 if __name__ == "__main__":

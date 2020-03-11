@@ -362,8 +362,26 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuWorkspace">
+    <property name="title">
+     <string>Workspace</string>
+    </property>
+    <addaction name="menu_workspace_export"/>
+    <addaction name="menu_workspace_import"/>
+   </widget>
+   <addaction name="menuWorkspace"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="menu_workspace_export">
+   <property name="text">
+    <string>Export...</string>
+   </property>
+  </action>
+  <action name="menu_workspace_import">
+   <property name="text">
+    <string>Import...</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>pb_input_browse</tabstop>

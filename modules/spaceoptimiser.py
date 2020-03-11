@@ -1,5 +1,12 @@
 from shapely.geometry import *
 
+if __package__ is None or __package__ == '':
+    # uses current directory visibility
+    from smallestenclosingcircle import make_circle as smallest_circle
+else:
+    # uses current package visibility
+    from .smallestenclosingcircle import make_circle as smallest_circle
+
 class Optimiser:
     def __init__(self):
         self.width = 2400
@@ -10,6 +17,14 @@ class Optimiser:
         self.shape = None
         self.position = [0, 0]
         self.angle = 0
+
+    def prepare(self):
+        _, _, radius = smallest_circle(self.shape.exterior.coords)
+        board = Polygon(self.getBoardShape())
+        return list(board.buffer(-radius).exterior.coords)
+
+    def step(self):
+        pass
 
     def setBoardSize(self, dimensions):
         """Sets dimensions of the board as (widht, height)"""
@@ -45,6 +60,8 @@ class Optimiser:
         holes_to_remove = []
         holes_to_add = []
         for hole in self.holes:
+            if hole.contains(not_hole):
+                return
             if not_hole.contains(hole):
                 holes_to_remove.append(hole)
             if not_hole.intersects(hole):
@@ -82,7 +99,10 @@ class Optimiser:
         """Sets the working shape. Expecting a list of points"""
         self.shape = Polygon(shape)
 
+    def getShape(self):
+        return list(self.shape.boundary.coords)
+
 if __name__ == "__main__":
     opt = Optimiser()
     h = opt.getHoles()
-    print(h)
+    #print(h)
