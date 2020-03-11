@@ -62,10 +62,24 @@ class Api():
         return shapes
 
     def saveWorkspace(self, file):
-        pass
+        outw = (self.optimiser.width, self.optimiser.height, self.optimiser.getHoles(), self.optimiser.hole_offset, self.optimiser.edge_offset)
+        with open(file, "wb") as outfile:
+            pickle.dump(outw, outfile, -1)
 
-    def loadWorkspace(self, file)
-        pass
+    def loadWorkspace(self, file):
+        inw = ()
+        with open(file, "rb") as infile:
+            inw = pickle.load(infile)
+        self.optimiser.__init__()
+        self.optimiser.width = inw[0]
+        self.optimiser.height = inw[1]
+        for hole in inw[2]:
+            self.optimiser.addHole(hole)
+        self.optimiser.hole_offset = inw[3]
+        self.optimiser.edge_offset = inw[4]
+        
+
+
 
 
 if __name__ == "__main__":

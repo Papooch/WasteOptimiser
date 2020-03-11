@@ -154,6 +154,19 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.api.optimiser.subtractHole(self.drawn_shape)
         self.stopDrawing()
 
+    def workspaceExport(self):
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self,"Where to save current worksapce...", "Workspace.pkl", "Pickle files (*.pkl);;All Files (*)")
+        if not filename:
+            return
+        self.api.saveWorkspace(filename)
+
+    def workspaceImport(self):
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Select workspace file to load", "", "Pickle files (*.pkl);;All Files (*)")
+        if not filename:
+            return
+        self.api.loadWorkspace(filename)
+        self.drawWorkspace()
+
     def workspaceMouseMotion(self, event):
         x = clamp(event.xdata, 0, self.api.optimiser.width)
         y = clamp(event.ydata, 0, self.api.optimiser.height)
@@ -237,11 +250,17 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         # appy settings
         self.pb_settings_apply.clicked.connect(self.applySettings)
 
+        # workspace menu
+        self.menu_workspace_export.triggered.connect(self.workspaceExport)
+        self.menu_workspace_import.triggered.connect(self.workspaceImport)
+
+        # canvas control
         self.pb_workspace_add.clicked.connect(self.startDrawing)
         self.pb_workspace_subtract.clicked.connect(self.startSubtracting)
         self.pb_workspace_remove.clicked.connect(self.startDeleting)
         self.pb_workspace_clear.clicked.connect(self.clearWorkspace)
 
+        # optimisation control
         self.pb_optimiser_start.clicked.connect(self.setShape)
 
         # workspace figure callback
