@@ -1,12 +1,15 @@
 from shapely.geometry import *
+from shapely.geometry.polygon import orient
 from shapely import affinity
 
 if __package__ is None or __package__ == '':
     # uses current directory visibility
     from smallestenclosingcircle import make_circle as smallest_circle
+    from libnfporb_interface import genNFP
 else:
     # uses current package visibility
     from .smallestenclosingcircle import make_circle as smallest_circle
+    from .libnfporb_interface import genNFP
 
 class Optimiser:
     def __init__(self):
@@ -17,24 +20,39 @@ class Optimiser:
         self.holes = []         # list of hole shapes in the board
         self.shape = None       # shape to be placed
         self.centroid = [0, 0]  # centroid of shape to be placed
+        self.circle_center = [0, 0] # center of smallest enclosing circle of shape
+        self.circle_radius = 0  # radius of smallest enclosing circle of shape
         self.position = [0, 0]  # offset position of shape to be placed
         self.angle = 0          # angle (around centroid) of shape to be placed
 
         self.startpolygons = [] # lsit of possible starting polygons (polygons along which boundaries to start optimisation)
 
-    def init_startpoly(self):
-        _, _, radius = smallest_circle(self.shape.exterior.coords)
+    def init_startpoly(self, nfp=True):
+        dilatedboard = Polygon(self.getBoardShape()).buffer(-self.circle_radius)
+        dilatedholes = []
+        if not nfp:
+            dilatedholes = [hole.buffer(self.circle_radius + self.hole_offset) for hole in self.holes]
+        else: #if yes nfp
+            for hole in self.holes:
+                shapepoints = list(orient(self.shape.convex_hull.buffer(self.hole_offset, resolution=2)).exterior.coords)
+                holepoints = list(orient(hole.simplify(1)).exterior.coords)
+                holepoints[0] = (round(holepoints[0][0],2), round(holepoints[0][1],2))
+                holepoints[-1] = (round(holepoints[-1][0],2), round(holepoints[-1][1],2)) 
+                trans = [- shapepoints[0][0], - shapepoints[0][1]]
+                try:
+                    nfps = genNFP(holepoints, shapepoints)
+                except:
+                    pass
+                dilatedholes.append(affinity.translate(Polygon(nfps[0], nfps[1:]), trans[0], trans[1]))
 
-        dilatedboard = Polygon(self.getBoardShape()).buffer(-radius)
-        dilatedholes = [hole.buffer(radius) for hole in self.holes]
         dpolygon = dilatedboard
         for dhole in dilatedholes:
-            dpolygon = dpolygon.difference(dhole)
+            dpolygon = dpolygon.difference(dhole).simplify(1)
         self.startpolygons = []
         if hasattr(dpolygon, "__getitem__"):
         #if multiple holes result from one subtraction
             for dpoly in dpolygon:
-                self.startpolygons.append(dpoly)    
+                self.startpolygons.append(dpoly)
         else:
             self.startpolygons.append(dpolygon)
         
@@ -43,6 +61,8 @@ class Optimiser:
         retpoly = []
         for stp in self.startpolygons:
             retpoly.append(list(stp.exterior.coords))
+            for inner in stp.interiors:
+                retpoly.append(list(inner.coords))
         return retpoly
 
     def add_startpoly(self):
@@ -56,6 +76,9 @@ class Optimiser:
 
     def step(self):
         pass
+
+    def addShapeAsHole(self):
+        self.addHole(self.getShapeOriented())
 
     def setBoardSize(self, dimensions):
         """Sets dimensions of the board as (widht, height)"""
@@ -76,7 +99,7 @@ class Optimiser:
     def addHole(self, shape):
         """Adds a hole. Expecting a list of points ((x, y), ...)
             If the new hole intersects any existing one, it merges with it"""
-        new_hole = Polygon(shape)
+        new_hole = orient(Polygon(shape))
         holes_to_remove = []
         for hole in self.holes:
             if new_hole.intersects(hole):
@@ -128,11 +151,14 @@ class Optimiser:
 
     def setShape(self, shape):
         """Sets the working shape. Expecting a list of points"""
-        self.shape = Polygon(shape)
-        self.centroid = self.shape.centroid
+        self.shape = orient(Polygon(shape).simplify(1))
+        *self.circle_center, self.circle_radius = smallest_circle(self.shape.exterior.coords) # [x, y, r]
+        self.shape = affinity.translate(self.shape, -self.circle_center[0], -self.circle_center[1])
+        centroid = self.shape.centroid
+        self.centroid = [centroid.x, centroid.y]
 
     def getShape(self):
-        return list(self.shape.boundary.coords)
+        return list(affinity.translate(self.shape, self.circle_center[0], self.circle_center[1]).boundary.coords)
 
     def getShapeOriented(self):
         rotated = affinity.rotate(self.shape, self.angle, origin='centroid')

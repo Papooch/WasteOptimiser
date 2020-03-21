@@ -32,6 +32,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.drawn_shape_handle = None
         self.info_message = ""
         self.hole_to_remove = None
+        self.use_nfp = True
 
     ## FUNCTIONS ##
     def openFolder(self, folder):
@@ -96,11 +97,14 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         """Sets shape in the optimiser to the currently selected shape"""
         if self.api.selected_shape:
             self.api.optimiser.setShape(self.api.selected_shape[-1])
-            spolys = self.api.optimiser.init_startpoly()
-            self.api.optimiser.begin()
+            for _ in range(1):
+                spolys = self.api.optimiser.init_startpoly(self.use_nfp)
+                self.api.optimiser.begin()
+                self.api.optimiser.addShapeAsHole()
             shape = self.api.optimiser.getShapeOriented()
+            self.drawWorkspace()
             self.figure_workspace.draw(shape)
-            self.figure_workspace.drawShapes(spolys, ':r')
+            self.figure_workspace.drawShapes(spolys, '+:r')
             self.canvasWorkspace.draw()
 
     def clearWorkspace(self):
@@ -231,6 +235,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
                 pass
             self.stopDeleting()
 
+    def checkUseNFP(self):
+        self.use_nfp = self.cb_optimiser_use_nfp.isChecked()
 
     ## SETUP ##
     def setupCanvases(self, fPreview, fWorkspace):
@@ -263,6 +269,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
         # optimisation control
         self.pb_optimiser_start.clicked.connect(self.setShape)
+        self.cb_optimiser_use_nfp.clicked.connect(self.checkUseNFP)
+        self.pb_optimiser_add_as_hole.clicked.connect(self.api.optimiser.addShapeAsHole)
 
         # workspace figure callback
         self.canvasWorkspace.mpl_connect('motion_notify_event', self.workspaceMouseMotion)

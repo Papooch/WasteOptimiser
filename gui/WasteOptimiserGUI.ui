@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>867</width>
+    <width>869</width>
     <height>593</height>
    </rect>
   </property>
@@ -324,9 +324,26 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
+            <widget class="QCheckBox" name="cb_optimiser_use_nfp">
+             <property name="text">
+              <string>Use NFP</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="pb_optimiser_start">
              <property name="text">
               <string>Start</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pb_optimiser_add_as_hole">
+             <property name="text">
+              <string>(temp) Add as hole</string>
              </property>
             </widget>
            </item>
@@ -358,7 +375,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>867</width>
+     <width>869</width>
      <height>21</height>
     </rect>
    </property>
