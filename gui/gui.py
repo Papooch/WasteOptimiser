@@ -98,7 +98,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         if self.api.selected_shape:
             self.api.optimiser.setShape(self.api.selected_shape[-1])
             for _ in range(1):
-                spolys = self.api.optimiser.init_startpoly(self.use_nfp)
+                self.api.optimiser.initStartpoly(self.use_nfp)
+                spolys = self.api.optimiser.getStartpoly()
                 self.api.optimiser.begin()
                 self.api.optimiser.addShapeAsHole()
             shape = self.api.optimiser.getShapeOriented()
