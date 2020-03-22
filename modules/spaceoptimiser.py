@@ -1,6 +1,7 @@
 from shapely.geometry import *
 from shapely.geometry.polygon import orient
 from shapely import affinity
+from collections import defaultdict
 
 if __package__ is None or __package__ == '':
     # uses current directory visibility
@@ -13,6 +14,12 @@ else:
 
 def roundCoords(coords, sgf=0):
     return [(round(c[0],sgf), round(c[1],sgf)) for c in coords]
+
+_debug = False
+
+# extend Polygon to allow storing of NFPS
+Polygon.shape_nfps = defaultdict() # keys are wkts of shapes + hole offset, values are NFPS
+
 
 class Optimiser:
     def __init__(self):
@@ -30,10 +37,14 @@ class Optimiser:
 
         self.startpolygons = [] # lsit of possible starting polygons (polygons along which boundaries to start optimisation)
 
+    def getShapeHash(self):
+        pass
+
     def initStartpoly(self, nfp=True):
         """Prepares the board for placement optimisation"""
         dilatedboard = Polygon(self.getBoardShape()).buffer(-self.circle_radius)
         dilatedholes = []
+        startpolygons = []
         if not nfp:
             dilatedholes = [hole.buffer(self.circle_radius + self.hole_offset) for hole in self.holes]
         else: #if yes nfp
@@ -46,22 +57,43 @@ class Optimiser:
                 holepoints[0] = [holepoints[0][0]+1,holepoints[0][1]+1] #hacky hack
                 holepoints[-1] = holepoints[0]
 
-                try:
-                    nfps = genNFP(holepoints, shapepoints)
-                except RuntimeError as err:
-                    print(err)
-                    holepoints = roundCoords(holepoints)
-                    nfps = genNFP(holepoints, shapepoints)            
+                
+                try: # try to get cached NFP
+                    npolys = hole.shape_nfps[self.shape.wkt + str(self.hole_offset)]
+                    if _debug: print("hole ", hole.wkt, " has cached nfp")
+                except KeyError: # it does not exist
+                    try:
+                        nfps = genNFP(holepoints, shapepoints)
+                    except RuntimeError as err:
+                        print("WTF?: ", err)
+                        holepoints = roundCoords(holepoints)
+                        try:
+                            nfps = genNFP(holepoints, shapepoints)
+                        except:
+                            print("WTF!!!")
+                    except:
+                        print("WTF!!???!")
+                    if _debug: print("storing new NFP for hole ", hole.wkt)
 
-                try:
-                    dilatedholes.append(affinity.translate(Polygon(nfps[0], nfps[1:]), trans[0], trans[1]))
-                except:
-                    pass
+                    try:
+                        npolys = Polygon(nfps[0], nfps[1:])
+                    except:
+                        # one of NFPS has less than 3 points -> ignote it #FIXME: do not ignore it somehow
+
+                        # hack to create polygons out of 1- and 2-point NFPS by appending
+                        # copies of the last point so that there are at least 3
+                        #nfps[1:] = [[*x, *[x[-1]]*(3-len(x))] if len(x) < 3 else x for x in nfps[1:]]
+
+                        npolys = Polygon(nfps[0], [x for x in nfps[1:] if len(x) >= 3])
+                        print("OHSHIT!")
+                    hole.shape_nfps[self.shape.wkt + str(self.hole_offset)] = npolys # store the NFP in cache
+
+                dilatedholes.append(affinity.translate(npolys, trans[0], trans[1]))
 
         dpolygon = dilatedboard
         for dhole in dilatedholes:
             dpolygon = dpolygon.difference(dhole).simplify(1)
-        self.startpolygons = []
+        self.startpolygons = startpolygons
         if hasattr(dpolygon, "__getitem__"):
         #if multiple holes result from one subtraction
             for dpoly in dpolygon:
@@ -95,7 +127,7 @@ class Optimiser:
 
     def addShapeAsHole(self):
         """Adds a hole in the shape of the current shape with the current position"""
-        self.addHole(self.getShapeOriented())
+        self.addHole(Polygon(self.getShapeOriented()).convex_hull.exterior.coords[:])
 
     def setBoardSize(self, dimensions):
         """Sets dimensions of the board as (widht, height)"""
@@ -117,13 +149,15 @@ class Optimiser:
         """Adds a hole. Expecting a list of points ((x, y), ...)
             If the new hole intersects any existing one, it merges with it"""
         new_hole = orient(Polygon(shape))
+        new_hole.shape_nfps = defaultdict() # clear cached NFPS
         holes_to_remove = []
         for hole in self.holes:
             if new_hole.intersects(hole) and not new_hole.touches(hole):
                 try:
                     new_hole = Polygon(new_hole.union(hole).exterior.coords) # throw out interior
+                    new_hole.shape_nfps = defaultdict() # clear cached NFPS
                 except:
-                    pass
+                    print("error in adding hole")
                 holes_to_remove.append(hole)
         for hole in holes_to_remove:
             self.holes.remove(hole)
@@ -174,7 +208,7 @@ class Optimiser:
 
     def setShape(self, shape):
         """Sets the working shape. Expecting a list of points"""
-        self.shape = orient(Polygon(shape).simplify(1))
+        self.shape = orient(Polygon(roundCoords(shape,5)).simplify(1))
         *self.circle_center, self.circle_radius = smallest_circle(self.shape.exterior.coords) # [x, y, r]
         self.shape = affinity.translate(self.shape, -self.circle_center[0], -self.circle_center[1])
         centroid = self.shape.centroid
