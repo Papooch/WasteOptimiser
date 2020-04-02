@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>869</width>
-    <height>593</height>
+    <width>879</width>
+    <height>616</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,104 +17,145 @@
    <enum>Qt::ToolButtonTextBesideIcon</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2">
+   <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QGroupBox" name="gb_input">
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>16777215</height>
-       </size>
+     <widget class="QSplitter" name="splitter_3">
+      <property name="styleSheet">
+       <string notr="true">::handle{border-style: dashed;
+    border-color: black;
+    border-width: 0px 1px 0px 0px;
+	margin-right: 5px;
+}</string>
       </property>
-      <property name="title">
-       <string>Input</string>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QLabel" name="lb_input_path">
+      <widget class="QGroupBox" name="gb_input">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Input</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="lb_input_path">
+            <property name="text">
+             <string>No folder</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="indent">
+             <number>1</number>
+            </property>
+            <property name="buddy">
+             <cstring>lb_input_path</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pb_input_browse">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QListWidget" name="lw_input_list">
+          <property name="textElideMode">
+           <enum>Qt::ElideLeft</enum>
+          </property>
+          <item>
            <property name="text">
-            <string>No folder</string>
+            <string>No folder selected...</string>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           <property name="flags">
+            <set>NoItemFlags</set>
            </property>
-           <property name="indent">
-            <number>1</number>
-           </property>
-           <property name="buddy">
-            <cstring>lb_input_path</cstring>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pb_input_browse">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Browse...</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QListWidget" name="lw_input_list">
-         <property name="textElideMode">
-          <enum>Qt::ElideLeft</enum>
-         </property>
-         <item>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lb_preview_info">
           <property name="text">
-           <string>No folder selected...</string>
+           <string>Nothing selected</string>
           </property>
-          <property name="flags">
-           <set>NoItemFlags</set>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="mplPreview" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lb_preview_info">
-         <property name="text">
-          <string>Nothing selected</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="mplPreview" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>150</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>150</height>
-          </size>
-         </property>
-         <layout class="QVBoxLayout" name="mplPreviewLayout"/>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,1">
-      <item>
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>150</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>150</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="mplPreviewLayout"/>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QSplitter" name="splitter_2">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>5</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
        <widget class="QGroupBox" name="gb_workspace">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>2</horstretch>
+          <verstretch>2</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>0</width>
+          <height>500</height>
+         </size>
+        </property>
         <property name="title">
          <string>Workspace</string>
         </property>
@@ -178,195 +219,227 @@
          </item>
         </layout>
        </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,1">
-        <item>
-         <widget class="QGroupBox" name="gb_settings">
-          <property name="title">
-           <string>Settings</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_4">
-           <item>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="0" column="0">
-              <widget class="QLabel" name="widthLabel">
+       <widget class="QSplitter" name="splitter">
+        <property name="baseSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <widget class="QGroupBox" name="gb_settings">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Settings</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="widthLabel">
+              <property name="text">
+               <string>Width (mm)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="sb_settings_width">
+              <property name="minimum">
+               <number>20</number>
+              </property>
+              <property name="maximum">
+               <number>50000</number>
+              </property>
+              <property name="value">
+               <number>2400</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="heightLabel">
+              <property name="text">
+               <string>Height (mm)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QSpinBox" name="sb_settings_height">
+              <property name="minimum">
+               <number>20</number>
+              </property>
+              <property name="maximum">
+               <number>50000</number>
+              </property>
+              <property name="value">
+               <number>1200</number>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="borderOffsetLabel">
+              <property name="text">
+               <string>Edge offset (mm)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QSpinBox" name="sb_settings_edge_offset">
+              <property name="maximum">
+               <number>999</number>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="holeOffsetMmLabel">
+              <property name="text">
+               <string>Hole offset (mm)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QSpinBox" name="sb_settings_hole_offset">
+              <property name="maximum">
+               <number>999</number>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="preferredLocationLabel">
+              <property name="text">
+               <string>Preferred location</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QComboBox" name="cb_settings_location">
+              <item>
                <property name="text">
-                <string>Width (mm)</string>
+                <string>Top left</string>
                </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QSpinBox" name="sb_settings_width">
-               <property name="minimum">
-                <number>20</number>
-               </property>
-               <property name="maximum">
-                <number>50000</number>
-               </property>
-               <property name="value">
-                <number>2400</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="heightLabel">
+              </item>
+              <item>
                <property name="text">
-                <string>Height (mm)</string>
+                <string>Top right</string>
                </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="sb_settings_height">
-               <property name="minimum">
-                <number>20</number>
-               </property>
-               <property name="maximum">
-                <number>50000</number>
-               </property>
-               <property name="value">
-                <number>1200</number>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="borderOffsetLabel">
+              </item>
+              <item>
                <property name="text">
-                <string>Edge offset (mm)</string>
+                <string>Bottom left</string>
                </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QSpinBox" name="sb_settings_edge_offset">
-               <property name="maximum">
-                <number>999</number>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="holeOffsetMmLabel">
+              </item>
+              <item>
                <property name="text">
-                <string>Hole offset (mm)</string>
+                <string>Bottom right</string>
                </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QSpinBox" name="sb_settings_hole_offset">
-               <property name="maximum">
-                <number>999</number>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="preferredLocationLabel">
+              </item>
+              <item>
                <property name="text">
-                <string>Preferred location</string>
+                <string>Left</string>
                </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QComboBox" name="cb_settings_location">
-               <item>
-                <property name="text">
-                 <string>Top left</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Top right</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Bottom left</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Bottom right</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <spacer name="horizontalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pb_settings_apply">
+              </item>
+              <item>
                <property name="text">
-                <string>Apply</string>
+                <string>Right</string>
                </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="gb_optimiser">
-          <property name="title">
-           <string>Optimiser</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
-            <widget class="QCheckBox" name="cb_optimiser_use_nfp">
-             <property name="text">
-              <string>Use NFP</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pb_optimiser_start">
-             <property name="text">
-              <string>Start</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pb_optimiser_add_as_hole">
-             <property name="text">
-              <string>(temp) Add as hole</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pb_optimiser_history">
-             <property name="text">
-              <string>Show graph...</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pb_optimiser_export">
-             <property name="text">
-              <string>Export gcode...</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QCheckBox" name="cb_settings_small_first">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string>Small holes first</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_settings_apply">
+              <property name="text">
+               <string>Apply</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QGroupBox" name="gb_optimiser">
+         <property name="title">
+          <string>Optimiser</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QCheckBox" name="cb_optimiser_use_nfp">
+            <property name="text">
+             <string>Use NFP</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pb_optimiser_start">
+            <property name="text">
+             <string>Start</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pb_optimiser_add_as_hole">
+            <property name="text">
+             <string>(temp) Add as hole</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pb_optimiser_history">
+            <property name="text">
+             <string>Show graph...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pb_optimiser_export">
+            <property name="text">
+             <string>Export gcode...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -375,7 +448,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>869</width>
+     <width>879</width>
      <height>21</height>
     </rect>
    </property>

@@ -75,6 +75,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.api.optimiser.setBoardSize((self.sb_settings_width.value(), self.sb_settings_height.value()))
         self.api.optimiser.hole_offset = self.sb_settings_hole_offset.value()
         self.api.optimiser.edge_offset = self.sb_settings_edge_offset.value()
+        self.api.optimiser.preffered_pos = self.cb_settings_location.currentIndex()
+        self.api.optimiser.small_first = self.cb_settings_small_first.isChecked()
         self.drawWorkspace()
 
     def drawShapeInWorkspace(self):
