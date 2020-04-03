@@ -87,18 +87,60 @@
          </layout>
         </item>
         <item>
-         <widget class="QListWidget" name="lw_input_list">
-          <property name="textElideMode">
-           <enum>Qt::ElideLeft</enum>
+         <widget class="QScrollArea" name="sa_input_list">
+          <property name="widgetResizable">
+           <bool>true</bool>
           </property>
-          <item>
-           <property name="text">
-            <string>No folder selected...</string>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>148</width>
+             <height>316</height>
+            </rect>
            </property>
-           <property name="flags">
-            <set>NoItemFlags</set>
-           </property>
-          </item>
+           <layout class="QVBoxLayout" name="layout_input_list">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>No folder selected</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>300</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
         <item>
@@ -408,11 +450,25 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pb_optimiser_start">
-            <property name="text">
-             <string>Start</string>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <property name="spacing">
+             <number>6</number>
             </property>
-           </widget>
+            <item>
+             <widget class="QPushButton" name="pb_optimiser_start">
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_optimiser_stop">
+              <property name="text">
+               <string>Stop</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QPushButton" name="pb_optimiser_add_as_hole">
@@ -475,7 +531,6 @@
  </widget>
  <tabstops>
   <tabstop>pb_input_browse</tabstop>
-  <tabstop>lw_input_list</tabstop>
   <tabstop>pb_workspace_add</tabstop>
   <tabstop>pb_workspace_remove</tabstop>
   <tabstop>sb_settings_width</tabstop>
@@ -483,7 +538,6 @@
   <tabstop>sb_settings_edge_offset</tabstop>
   <tabstop>sb_settings_hole_offset</tabstop>
   <tabstop>cb_settings_location</tabstop>
-  <tabstop>pb_optimiser_start</tabstop>
   <tabstop>pb_optimiser_export</tabstop>
  </tabstops>
  <resources/>

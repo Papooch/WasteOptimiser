@@ -12,6 +12,50 @@ def clamp(val, minv, maxv):
     if val is not None: return min(maxv, max(val, minv))
     else: return 0
 
+
+class MyGroupBox(QtWidgets.QGroupBox):
+    """Ectending functionality of QGroupBox - hover and click events"""
+    
+    name = "nothing"
+    click_callback = print
+
+    
+    style_QGroupBox_normal = """
+    """
+
+    style_QGroupBox_hover = """
+        background-color: #ddd;
+    """
+
+    style_QGroupBox_click = """
+        background-color: #ccc;
+    """
+
+    def event(self, e):
+        #print(e.type())
+        t = e.type()
+        if t == QtCore.QEvent.HoverEnter: # mouse enter
+            self.setStyleSheet(self.style_QGroupBox_hover)
+        elif t == QtCore.QEvent.HoverLeave: # mouse leave
+            self.setStyleSheet(self.style_QGroupBox_normal)
+        elif t == QtCore.QEvent.MouseButtonPress: # mouse click
+            self.setStyleSheet(self.style_QGroupBox_click)
+        elif t == QtCore.QEvent.MouseButtonRelease: # mouse release
+            self.setStyleSheet(self.style_QGroupBox_hover)
+            self.click_callback(self.info)
+        super(MyGroupBox, self).event(e)
+        return True
+
+
+class OptimiserThread(QtCore.QThread):
+    def __init__(self, function):
+        QtCore.QThread.__init__(self)
+        self.func = function
+    
+    def run(self):
+        self.func()
+
+
 class Mode():
     none = 0
     drawing = 1
@@ -23,6 +67,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
     def __init__(self, api):
         super(MainWindow, self).__init__()
         self.setupUi(self)
+        self.setWindowTitle('Waste Optimiser')
         self.api = api
         self.mode = Mode.none
         self.drawn_shape = []
@@ -32,17 +77,17 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.drawn_shape_handle = None
         self.info_message = ""
         self.hole_to_remove = None
-        self.use_nfp = True
 
     ## FUNCTIONS ##
     def openFolder(self, folder):
         """Displays files from the given folder in list"""
 
         self.api.settings.input_path = folder
-        items = self.api.getGcodes(self.api.settings.input_path)
+        self.api.constructShapeList(self.api.settings.input_path)
+        items = self.api.shape_dict.keys()
         self.lb_input_path.setText('...' + folder[-20:])
-        self.lw_input_list.clear()
-        self.lw_input_list.addItems(items)
+        self.clearInputList()
+        self.fillInputList(items)
 
     ## CALLBACKS ##
     def askFolder(self):
@@ -56,13 +101,13 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
         self.figure_preview.clear()
         self.lb_preview_info.setText("Loading...")
-        shapes = self.api.getShapesFromGcode(self.api.settings.input_path + '/' + name.text())
+        shapes = self.api.shape_dict[name]['shape']
 
-        if len(shapes)==0:
-            self.api.selected_shape = None
+        if not shapes:
+            self.api.selected_shape_name = None
             self.lb_preview_info.setText("Invalid gcode file")
         else:
-            self.api.selected_shape = shapes
+            self.api.selected_shape_name = name
             self.figure_preview.drawShapes(shapes)
             self.figure_preview.draw([[0, 0]], 'r+')
             dimensions = self.api.getShapeDimensions()
@@ -79,9 +124,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.api.optimiser.small_first = self.cb_settings_small_first.isChecked()
         self.drawWorkspace()
 
-    def drawShapeInWorkspace(self):
-        if not self.api.selected_shape: return
-        self.figure_workspace.drawShapes(self.api.selected_shape)
+    def drawShapeInWorkspace(self): #TODO: Delete
+        if not self.api.selected_shape_name: return
+        self.figure_workspace.drawShapes(self.api.getSelectedShape())
         self.canvasWorkspace.draw()
 
 
@@ -90,25 +135,31 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
         self.figure_workspace.clear()
         self.figure_workspace.draw(self.api.optimiser.getBoardShape())
-        holes = self.api.optimiser.getHoles()
+        holes = self.api.optimiser.getHoles('holes')
         if holes:
             self.figure_workspace.drawShapes(holes, options='b-')
+        holes = self.api.optimiser.getHoles('shapes')
+        if holes:
+            self.figure_workspace.drawShapes(holes, options='k-')
         self.canvasWorkspace.draw()
 
-    def setShape(self):
+    def startOptimisation(self):
         """Sets shape in the optimiser to the currently selected shape"""
-        if self.api.selected_shape:
-            self.api.optimiser.setShape(self.api.selected_shape[-1])
-            for _ in range(1):
-                self.api.optimiser.initStartpoly(self.use_nfp)
-                spolys = self.api.optimiser.getStartpoly()
-                self.api.optimiser.begin()
-                self.api.optimiser.addShapeAsHole()
-            shape = self.api.optimiser.getShapeOriented()
-            self.drawWorkspace()
-            self.figure_workspace.draw(shape)
-            self.figure_workspace.drawShapes(spolys, '+:r')
-            self.canvasWorkspace.draw()
+
+        self.api.stop_flag = False
+        print("optimisation started")
+        self.optimiserThread = OptimiserThread(self.api.placeAllSelectedShapes)
+        self.optimiserThread.finished.connect(self.optimisationEnded)
+        self.optimiserThread.start()
+        #self.api.placeAllSelectedShapes()
+        #self.api.optimiser.getShapeNamesPositions()
+        
+
+    def optimisationEnded(self):
+        self.optimiserThread.exit()
+        print("optimisation finished")
+        self.drawWorkspace()
+        self.canvasWorkspace.draw()
 
     def clearWorkspace(self):
         self.api.optimiser.__init__()
@@ -239,7 +290,43 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.stopDeleting()
 
     def checkUseNFP(self):
-        self.use_nfp = self.cb_optimiser_use_nfp.isChecked()
+        self.api.settings.use_nfp = self.cb_optimiser_use_nfp.isChecked()
+
+
+    def fillInputList(self, items):
+        for item in items:
+            self.createInputListItem(item)
+        self.layout_input_list.addStretch()
+
+    def createInputListItem(self, name):
+        """Creates new entry in the gcode list""" #TODO: Refactor
+        layout = self.layout_input_list
+        gb = MyGroupBox()
+        gbl = QtWidgets.QHBoxLayout()
+        gb.setLayout(gbl)
+        lbl = QtWidgets.QLabel(name)
+        splbl = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,QtWidgets.QSizePolicy.Preferred)
+        splbl.setHorizontalStretch(2)
+        lbl.setSizePolicy(splbl)
+        gb.setMouseTracking(True)
+        gb.setAttribute(QtCore.Qt.WA_Hover)
+        gb.info = name
+        gb.click_callback = self.selectAndDrawShape
+        gbl.addWidget(lbl)
+        spb = QtWidgets.QSpinBox()
+        spspb = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,QtWidgets.QSizePolicy.Preferred)
+        spspb.setHorizontalStretch(1)
+        spb.setSizePolicy(spspb)
+        gbl.addWidget(spb)
+        spb.valueChanged.connect(lambda x: self.api.setShapeCount(lbl.text(), spb.value()))
+        layout.addWidget(gb)
+
+    def clearInputList(self):
+        layout = self.layout_input_list
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
 
     ## SETUP ##
     def setupCanvases(self, fPreview, fWorkspace):
@@ -255,8 +342,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
     def setupCallbacks(self):
         # select gcode folder
         self.pb_input_browse.clicked.connect(self.askFolder)
-        # shape in list clicked
-        self.lw_input_list.itemClicked.connect(self.selectAndDrawShape)
+
         # appy settings
         self.pb_settings_apply.clicked.connect(self.applySettings)
 
@@ -271,7 +357,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.pb_workspace_clear.clicked.connect(self.clearWorkspace)
 
         # optimisation control
-        self.pb_optimiser_start.clicked.connect(self.setShape)
+        self.pb_optimiser_start.clicked.connect(self.startOptimisation)
+        self.pb_optimiser_stop.clicked.connect(self.api.stopPlacing)
         self.cb_optimiser_use_nfp.clicked.connect(self.checkUseNFP)
         self.pb_optimiser_add_as_hole.clicked.connect(self.api.optimiser.addShapeAsHole)
 
