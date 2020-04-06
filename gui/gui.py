@@ -293,6 +293,10 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.api.settings.use_nfp = self.cb_optimiser_use_nfp.isChecked()
 
 
+    def checkLocalOptimisation(self):
+        self.api.settings.local_optimisation = self.cb_optimiser_local_optimisation.isChecked()
+
+
     def fillInputList(self, items):
         for item in items:
             self.createInputListItem(item)
@@ -360,6 +364,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.pb_optimiser_start.clicked.connect(self.startOptimisation)
         self.pb_optimiser_stop.clicked.connect(self.api.stopPlacing)
         self.cb_optimiser_use_nfp.clicked.connect(self.checkUseNFP)
+        self.cb_optimiser_local_optimisation.clicked.connect(self.checkLocalOptimisation)
         self.pb_optimiser_add_as_hole.clicked.connect(self.api.optimiser.addShapeAsHole)
 
         # workspace figure callback

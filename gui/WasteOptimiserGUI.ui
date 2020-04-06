@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>879</width>
-    <height>616</height>
+    <height>617</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -97,7 +97,7 @@
              <x>0</x>
              <y>0</y>
              <width>148</width>
-             <height>316</height>
+             <height>317</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="layout_input_list">
@@ -440,14 +440,28 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
-           <widget class="QCheckBox" name="cb_optimiser_use_nfp">
-            <property name="text">
-             <string>Use NFP</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QCheckBox" name="cb_optimiser_use_nfp">
+              <property name="text">
+               <string>Use NFP</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cb_optimiser_local_optimisation">
+              <property name="text">
+               <string>Local optimisation</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">

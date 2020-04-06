@@ -14,6 +14,7 @@ class Settings():
     location = 'tl'
     input_path = None
     use_nfp = True
+    local_optimisation = True
 
 
 class Api():
