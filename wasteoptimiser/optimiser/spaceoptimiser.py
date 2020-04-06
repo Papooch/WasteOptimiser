@@ -3,14 +3,15 @@ from shapely.geometry.polygon import orient
 from shapely import affinity
 from collections import defaultdict
 
-if __package__ is None or __package__ == '':
-    # uses current directory visibility
-    from smallestenclosingcircle import make_circle as smallest_circle
-    from libnfporb_interface import genNFP
-else:
-    # uses current package visibility
-    from .smallestenclosingcircle import make_circle as smallest_circle
-    from .libnfporb_interface import genNFP
+from wasteoptimiser.optimiser.smallestenclosingcircle import make_circle as smallest_circle
+try:
+    from wasteoptimiser.nfp_interface.libnfporb_interface import genNFP
+    _nfp_available = True
+except:
+    print("\nlibnfporb_interface.pyd not found under wasteoptimiser/nfp_interface/ or the binary is incompatible,\n" +
+        "NFP option will not be available. Please see readme.md on instructions how to build the library.")
+    _nfp_available = False
+
 
 def roundCoords(coords, sgf=0):
     return [(round(c[0],sgf), round(c[1],sgf)) for c in coords]
@@ -130,6 +131,7 @@ class Optimiser:
         """Prepares the board for placement optimisation"""
         shrinkedboard = None
         dilatedholes = []
+        if not _nfp_available: nfp = False
         [shrinkedboard, dilatedholes] = self.getBoardHolesNFP() if nfp else self.getBoardHolesCircle()
         startpolygons = []
         for dhole in dilatedholes:

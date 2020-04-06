@@ -4,8 +4,8 @@ import pickle
 import json
 from collections import defaultdict
 
-import modules.gcodeparser
-import modules.spaceoptimiser
+from wasteoptimiser.parser import gcodeparser
+from wasteoptimiser.optimiser import spaceoptimiser
 
 class Settings():
     width = 100
@@ -24,7 +24,7 @@ class Api():
         self.logger = None
         self.figure_preview   = None
         self.figure_workspace = None
-        self.optimiser = modules.spaceoptimiser.Optimiser()
+        self.optimiser = spaceoptimiser.Optimiser()
         self.selected_shape_name = None
         self.shape_dict = defaultdict() # key: filename, value: {'count': count, 'shape': shape}}
         
@@ -106,7 +106,7 @@ class Api():
             with open(file, 'r') as f:
                 gcode = f.read()
             if gcode:
-                xtr = modules.gcodeparser.ShapeExtractor(gcode, suppressLeadIn=True)
+                xtr = gcodeparser.ShapeExtractor(gcode, suppressLeadIn=True)
                 xtr.run()
         except:
             print('nope')

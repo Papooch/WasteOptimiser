@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 import os
-Ui_MainWindow, QMainWindow = loadUiType(os.path.join(os.path.dirname(__file__), 'WasteOptimiserGUI.ui'))
+Ui_MainWindow, QMainWindow = loadUiType(os.path.join(os.path.dirname(__file__), '../resources/WasteOptimiserGUI.ui'))
 
 def clamp(val, minv, maxv):
     if val is not None: return min(maxv, max(val, minv))
