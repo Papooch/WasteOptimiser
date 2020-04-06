@@ -287,12 +287,15 @@
             <item row="0" column="0">
              <widget class="QLabel" name="widthLabel">
               <property name="text">
-               <string>Width (mm)</string>
+               <string>Width</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
              <widget class="QSpinBox" name="sb_settings_width">
+              <property name="suffix">
+               <string> mm</string>
+              </property>
               <property name="minimum">
                <number>20</number>
               </property>
@@ -307,12 +310,15 @@
             <item row="1" column="0">
              <widget class="QLabel" name="heightLabel">
               <property name="text">
-               <string>Height (mm)</string>
+               <string>Height</string>
               </property>
              </widget>
             </item>
             <item row="1" column="1">
              <widget class="QSpinBox" name="sb_settings_height">
+              <property name="suffix">
+               <string> mm</string>
+              </property>
               <property name="minimum">
                <number>20</number>
               </property>
@@ -327,12 +333,15 @@
             <item row="2" column="0">
              <widget class="QLabel" name="borderOffsetLabel">
               <property name="text">
-               <string>Edge offset (mm)</string>
+               <string>Edge offset</string>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
              <widget class="QSpinBox" name="sb_settings_edge_offset">
+              <property name="suffix">
+               <string> mm</string>
+              </property>
               <property name="maximum">
                <number>999</number>
               </property>
@@ -341,12 +350,15 @@
             <item row="3" column="0">
              <widget class="QLabel" name="holeOffsetMmLabel">
               <property name="text">
-               <string>Hole offset (mm)</string>
+               <string>Hole offset</string>
               </property>
              </widget>
             </item>
             <item row="3" column="1">
              <widget class="QSpinBox" name="sb_settings_hole_offset">
+              <property name="suffix">
+               <string> mm</string>
+              </property>
               <property name="maximum">
                <number>999</number>
               </property>

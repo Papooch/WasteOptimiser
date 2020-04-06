@@ -1,4 +1,4 @@
-from shapely.geometry import *
+from shapely.geometry import Point,Polygon, box
 from shapely.geometry.polygon import orient
 from shapely import affinity
 from collections import defaultdict

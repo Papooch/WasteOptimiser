@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import pickle
+import json
 from collections import defaultdict
 
 import modules.gcodeparser
@@ -118,24 +119,29 @@ class Api():
     def saveWorkspace(self, file):
         """Saves the current optimiser workspace configuration to file"""
 
-        outw = (self.optimiser.width, self.optimiser.height, self.optimiser.getHoles(), self.optimiser.hole_offset, self.optimiser.edge_offset)
-        with open(file, "wb") as outfile:
-            pickle.dump(outw, outfile, -1)
+        outw = {'width'   : self.optimiser.width,
+                'height'  : self.optimiser.height,
+                'holes'   : self.optimiser.getHoles(),
+                'h_offset': self.optimiser.hole_offset,
+                'e_offset': self.optimiser.edge_offset
+        }
+        with open(file, "w") as outfile:
+            json.dump(outw, outfile)
 
 
     def loadWorkspace(self, file):
         """Loads optimiser workspace configuration from file"""
 
         inw = ()
-        with open(file, "rb") as infile:
-            inw = pickle.load(infile)
+        with open(file, "r") as infile:
+            inw = json.load(infile)
         self.optimiser.__init__()
-        self.optimiser.width = inw[0]
-        self.optimiser.height = inw[1]
-        for hole in inw[2]:
+        self.optimiser.width = inw['width']
+        self.optimiser.height = inw['height']
+        for hole in inw['holes']:
             self.optimiser.addHole(hole)
-        self.optimiser.hole_offset = inw[3]
-        self.optimiser.edge_offset = inw[4]
+        self.optimiser.hole_offset = inw['h_offset']
+        self.optimiser.edge_offset = inw['e_offset']
         
 
 
@@ -143,7 +149,7 @@ class Api():
 
 if __name__ == "__main__":
     #api = Api()
-    from main import *
+    from __main__ import *
 
 
 

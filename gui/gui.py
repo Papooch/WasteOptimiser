@@ -137,7 +137,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.figure_workspace.draw(self.api.optimiser.getBoardShape())
         holes = self.api.optimiser.getHoles('holes')
         if holes:
-            self.figure_workspace.drawShapes(holes, options='b-')
+            self.figure_workspace.drawShapes(holes, options='b-', filled=False)
         holes = self.api.optimiser.getHoles('shapes')
         if holes:
             self.figure_workspace.drawShapes(holes, options='k-')
@@ -214,16 +214,20 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.stopDrawing()
 
     def workspaceExport(self):
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self,"Where to save current worksapce...", "Workspace.pkl", "Pickle files (*.pkl);;All Files (*)")
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self,"Where to save current worksapce...", "Workspace.json", "JSON files (*.json);;All Files (*)")
         if not filename:
             return
         self.api.saveWorkspace(filename)
 
     def workspaceImport(self):
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Select workspace file to load", "", "Pickle files (*.pkl);;All Files (*)")
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self,"Select workspace file to load", "", "JSON files (*.json);;All Files (*)")
         if not filename:
             return
         self.api.loadWorkspace(filename)
+        self.sb_settings_width.setValue(self.api.optimiser.width)
+        self.sb_settings_height.setValue(self.api.optimiser.height)
+        self.sb_settings_edge_offset.setValue(self.api.optimiser.edge_offset)
+        self.sb_settings_hole_offset.setValue(self.api.optimiser.hole_offset)
         self.drawWorkspace()
 
     def workspaceMouseMotion(self, event):
