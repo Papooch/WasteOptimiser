@@ -1,0 +1,5 @@
+numpy
+matplotlib
+Shapely
+PyQt5
+pybind11

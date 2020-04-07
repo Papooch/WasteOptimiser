@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 import os
+import time
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(os.path.dirname(__file__), '../resources/WasteOptimiserGUI.ui'))
 
 from wasteoptimiser.optimiser.localsearch import LocalSearch #TODO: REMOVE
@@ -56,7 +57,6 @@ class OptimiserThread(QtCore.QThread):
     
     def run(self):
         self.func()
-
 
 class Mode():
     none = 0
@@ -152,6 +152,15 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         print("optimisation started")
         self.optimiserThread = OptimiserThread(self.api.placeAllSelectedShapes)
         self.optimiserThread.finished.connect(self.optimisationEnded)
+        self.progress_bar_optimisation.setMaximum(self.api.getAllShapesCount())
+        self.progress_bar_optimisation.setValue(0)
+
+        self.pb_optimiser_start.setVisible(False)
+        self.progress_bar_optimisation.setVisible(True)
+
+        self.progressBarUpdateTimer = QtCore.QTimer()
+        self.progressBarUpdateTimer.timeout.connect(self.updateOptimisationProgressBar)
+        self.progressBarUpdateTimer.start(100)
         self.optimiserThread.start()
         #self.api.placeAllSelectedShapes()
         #self.api.optimiser.getShapeNamesPositions()
@@ -159,13 +168,25 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
     def optimisationEnded(self):
         self.optimiserThread.exit()
+        self.progress_bar_optimisation.setVisible(False)
+        self.pb_optimiser_start.setVisible(True)
+        self.progressBarUpdateTimer.stop()
         print("optimisation finished")
         self.drawWorkspace()
         self.canvasWorkspace.draw()
 
+    
+    def updateOptimisationProgressBar(self):
+        self.progress_bar_optimisation.setValue(self.api.num_placed_shapes)
+
+
     def clearWorkspace(self):
         self.api.optimiser.__init__()
         self.applySettings()
+
+    def clearShapes(self):
+        self.api.optimiser.hole_shapes.clear()
+        self.drawWorkspace()
 
     def startDrawing(self):
         self.info_message = 'Click to add a point, click near the first point to finish shape. Right click to cancel.'
@@ -209,11 +230,15 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.drawn_shape.append(self.first_point)
         self.api.optimiser.addHole(self.drawn_shape)
         self.stopDrawing()
+        self.startDrawing()
 
     def subtractShape(self):
         self.drawn_shape.append(self.first_point)
         self.api.optimiser.subtractHole(self.drawn_shape)
         self.stopDrawing()
+        self.startDrawing()
+        self.mode = Mode.subtracting
+        
 
     def workspaceExport(self):
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(self,"Where to save current worksapce...", "Workspace.json", "JSON files (*.json);;All Files (*)")
@@ -291,9 +316,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         elif self.mode == Mode.deleting:
             if event.button == 1: # left mouse button
                 if self.hole_to_remove: self.api.optimiser.removeHole(self.hole_to_remove)
+                self.stopDeleting()
+                self.startDeleting()
             elif event.button == 3: # right mouse button
-                pass
-            self.stopDeleting()
+                self.stopDeleting()
+            
         #TODO: DELETE
         elif event.button == 2:
             self.api.optimiser.position = (x, y)
@@ -318,11 +345,17 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
 
     def checkUseNFP(self):
-        self.api.settings.use_nfp = self.cb_optimiser_use_nfp.isChecked()
+        checked = self.cb_optimiser_use_nfp.isChecked()
+        self.api.settings.use_nfp = checked
+        self.sp_optimiser_nfp_rotations.setEnabled(checked)
 
 
     def checkLocalOptimisation(self):
         self.api.settings.local_optimisation = self.cb_optimiser_local_optimisation.isChecked()
+
+
+    def setNFPRotations(self, number):
+        self.api.settings.nfp_rotations = number
 
 
     def fillInputList(self, items):
@@ -387,13 +420,17 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.pb_workspace_subtract.clicked.connect(self.startSubtracting)
         self.pb_workspace_remove.clicked.connect(self.startDeleting)
         self.pb_workspace_clear.clicked.connect(self.clearWorkspace)
+        self.pb_workspace_clear_shapes.clicked.connect(self.clearShapes)
 
         # optimisation control
+        self.progress_bar_optimisation.setVisible(False)
+
         self.pb_optimiser_start.clicked.connect(self.startOptimisation)
         self.pb_optimiser_stop.clicked.connect(self.api.stopPlacing)
         self.cb_optimiser_use_nfp.clicked.connect(self.checkUseNFP)
         self.cb_optimiser_local_optimisation.clicked.connect(self.checkLocalOptimisation)
         self.pb_optimiser_add_as_hole.clicked.connect(self.api.optimiser.addShapeAsHole)
+        self.sp_optimiser_nfp_rotations.valueChanged.connect(self.setNFPRotations)
 
         # workspace figure callback
         self.canvasWorkspace.mpl_connect('motion_notify_event', self.workspaceMouseMotion)

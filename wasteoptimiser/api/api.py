@@ -1,11 +1,11 @@
-import numpy as np
 import os
-import pickle
 import json
 from collections import defaultdict
+import numpy as np
 
 from wasteoptimiser.parser import gcodeparser
 from wasteoptimiser.optimiser import spaceoptimiser
+from wasteoptimiser.optimiser.localsearch import LocalSearch
 
 class Settings():
     width = 100
@@ -15,6 +15,7 @@ class Settings():
     location = 'tl'
     input_path = None
     use_nfp = True
+    nfp_rotations = 1
     local_optimisation = True
 
 
@@ -29,18 +30,65 @@ class Api():
         self.shape_dict = defaultdict() # key: filename, value: {'count': count, 'shape': shape}}
         
         self.stop_flag = False
+        self.num_shapes_to_place = 0
+        self.num_placed_shapes = 0
 
     def placeSelectedShape(self):
         if not self.selected_shape_name: return None# TODO: error code
         if self.getSelectedShapeCount() == 0: return None# TODO: error code
         self.optimiser.setShape(self.getSelectedShape()[-1])
-        self.optimiser.initStartpoly(self.settings.use_nfp)
-        if not self.optimiser.begin(): return False# TODO: error code
+        self.optimiser.angle = 0
+
+        if self.settings.use_nfp:
+
+            if self.optimiser.preffered_pos == 0: # top left
+                pref = lambda p: -p[0] + p[1] 
+            if self.optimiser.preffered_pos == 1: # top right
+                pref = lambda p: p[0] + p[1] 
+            if self.optimiser.preffered_pos == 2: # bottom left
+                pref = lambda p: -p[0] - p[1] 
+            if self.optimiser.preffered_pos == 3: # bottom right
+                pref = lambda p: p[0] - p[1] 
+            if self.optimiser.preffered_pos == 4: # Left
+                pref = lambda p: -p[0]
+            if self.optimiser.preffered_pos == 5: # Right
+                pref = lambda p: p[0] 
+
+            angles = np.linspace(0, 360, self.settings.nfp_rotations, endpoint=False)
+            start_points = []
+            for angle in angles:
+                self.optimiser.angle = angle
+                self.optimiser.initStartpoly(nfp = True)
+                if self.optimiser.begin():
+                    start_points.append(self.optimiser.position)
+            
+            if not start_points:
+                return False# TODO: error code
+            max_index, max_value = max(enumerate(start_points), key=lambda p: pref(p[1]))
+            self.optimiser.position = max_value
+            self.optimiser.angle = angles[max_index]
+        else:
+            self.optimiser.initStartpoly(nfp = False)
+            if not self.optimiser.begin(): return False# TODO: error code
+    
+
+        if self.settings.local_optimisation:
+            g_search = LocalSearch(self.optimiser.shape,
+                self.optimiser.position,
+                self.optimiser.angle,
+                self.optimiser.circle_radius,
+                self.optimiser.holes)
+            while g_search.fail_counter < 3:
+                g_search.step()
+                self.optimiser.position = g_search.offset
+                self.optimiser.angle = g_search.angle
+
         self.optimiser.addShapeAsHole(self.selected_shape_name)
-        print(self.selected_shape_name, "placed")
         return True
     
     def placeAllSelectedShapes(self):
+        self.num_shapes_to_place = self.getAllShapesCount()
+        self.num_placed_shapes = 0
         shapes_sorted = sorted(
             self.shape_dict.keys(),
             key= lambda k: self.optimiser.getArea(self.shape_dict[k]['shape'][-1]),
@@ -51,10 +99,17 @@ class Api():
                 if self.stop_flag:
                     print("halted by user")
                     return
-                self.placeSelectedShape()
+                if not self.placeSelectedShape():
+                    print("no more", self.selected_shape_name, "can be placed")
+                    break
+                self.num_placed_shapes += 1
+                print(self.selected_shape_name, "placed (", self.num_placed_shapes, "/", self.num_shapes_to_place, ")")
 
     def stopPlacing(self):
         self.stop_flag = True
+
+    def getAllShapesCount(self):
+        return sum([l['count'] for l in list(self.shape_dict.values())])
 
     def getSelectedShapeCount(self):
         return self.shape_dict[self.selected_shape_name]['count']

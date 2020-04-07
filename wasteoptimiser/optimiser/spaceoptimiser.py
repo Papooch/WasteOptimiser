@@ -17,6 +17,10 @@ except:
 def roundCoords(coords, sgf=0):
     return [(round(c[0],sgf), round(c[1],sgf)) for c in coords]
 
+
+def intCoords(coords):
+    return [(int(c[0]), int(c[1])) for c in coords]
+
 _debug = False
 
 # extend Polygon to allow storing of NFPS
@@ -55,7 +59,7 @@ class Optimiser:
         return affinity.rotate(self.shape, self.angle, origin=(0,0))
 
     def getShapeHash(self):
-        return hash(self.shape.wkt + str(self.hole_offset))
+        return hash(self.shape.wkt + str(self.hole_offset) + str(self.angle))
 
     def getBoardHolesCircle(self):
         """Returns shrinked board and dilated holes using smallest enclosing circle"""
@@ -70,6 +74,9 @@ class Optimiser:
         dilatedholes = []
         for hole in self.holes:
             npolys = self.getNFPForHole(hole)
+            if not npolys:
+                print(f"couldn't compute NFP for {hole.name}, falling back to circle")
+                npolys = hole.buffer(self.circle_radius + self.hole_offset)
             dilatedholes.append(npolys)
         return [shrinkedboard, dilatedholes]
 
@@ -93,8 +100,21 @@ class Optimiser:
                 holepoints = roundCoords(holepoints)
                 try:
                     nfps = genNFP(holepoints, shapepoints)
-                except:
-                    print("WTF!!!")
+                except Exception as ee:
+                    print("WTF!!!", ee)
+                    holepoints = intCoords(holepoints)
+                    shapepoints = intCoords(shapepoints)
+                    try:
+                        nfps = genNFP(holepoints, shapepoints)
+                    except Exception as ee:
+                        print("WTF??????????", ee)
+                        holepoints[0] = [holepoints[0][0]-1,holepoints[0][1]-1] #unhacky unhack
+                        holepoints[-1] = holepoints[0]
+                        try:
+                            nfps = genNFP(holepoints, shapepoints)
+                        except Exception as ee:
+                            print("I quit.", ee)
+                            return None
             except:
                 print("WTF!!???!")
             if _debug: print("storing new NFP for hole ", hole.wkt)
@@ -152,6 +172,10 @@ class Optimiser:
     def begin(self):
         """Places the shape to an initial point. returns True if shape can be placed, False otherwise"""
         if not self.startpolygons:
+            
+            # import pdb;
+            # pdb.set_trace()
+
             print("ain't no place for this wicked")
             return False
         if self.small_first:            
@@ -322,7 +346,7 @@ class Optimiser:
 
     def getShapeOrientedDilated(self):
         """"Returns the target shape dillated by the given amount"""
-        rotated = affinity.rotate(self.shape.buffer(self.circle_radius/2), self.angle, origin='centroid')
+        rotated = affinity.rotate(self.shape.buffer(self.circle_radius/2), self.angle, origin=(0,0))
         translatedrotated = affinity.translate(rotated, self.position[0], self.position[1])
         return list(translatedrotated.boundary.coords)
 

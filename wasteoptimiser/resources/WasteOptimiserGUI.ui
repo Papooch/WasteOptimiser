@@ -7,11 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>879</width>
-    <height>617</height>
+    <height>619</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>24</width>
+    <height>24</height>
+   </size>
   </property>
   <property name="toolButtonStyle">
    <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -97,7 +103,7 @@
              <x>0</x>
              <y>0</y>
              <width>148</width>
-             <height>317</height>
+             <height>319</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="layout_input_list">
@@ -239,9 +245,16 @@
             </spacer>
            </item>
            <item>
+            <widget class="QPushButton" name="pb_workspace_clear_shapes">
+             <property name="text">
+              <string>Clear shapes</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="pb_workspace_clear">
              <property name="text">
-              <string>Clear</string>
+              <string>Clear all</string>
              </property>
             </widget>
            </item>
@@ -373,6 +386,9 @@
             </item>
             <item row="4" column="1">
              <widget class="QComboBox" name="cb_settings_location">
+              <property name="currentIndex">
+               <number>4</number>
+              </property>
               <item>
                <property name="text">
                 <string>Top left</string>
@@ -455,6 +471,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
              <widget class="QCheckBox" name="cb_optimiser_use_nfp">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
               <property name="text">
                <string>Use NFP</string>
               </property>
@@ -464,7 +483,36 @@
              </widget>
             </item>
             <item>
+             <widget class="QSpinBox" name="sp_optimiser_nfp_rotations">
+              <property name="suffix">
+               <string> rotations</string>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>8</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
              <widget class="QCheckBox" name="cb_optimiser_local_optimisation">
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
               <property name="text">
                <string>Local optimisation</string>
               </property>
@@ -476,7 +524,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1,1">
             <property name="spacing">
              <number>6</number>
             </property>
@@ -484,6 +532,46 @@
              <widget class="QPushButton" name="pb_optimiser_start">
               <property name="text">
                <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QProgressBar" name="progress_bar_optimisation">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="baseSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="value">
+               <number>23</number>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="textVisible">
+               <bool>true</bool>
+              </property>
+              <property name="invertedAppearance">
+               <bool>false</bool>
+              </property>
+              <property name="textDirection">
+               <enum>QProgressBar::TopToBottom</enum>
+              </property>
+              <property name="format">
+               <string>%v/%m (%p%)</string>
               </property>
              </widget>
             </item>
