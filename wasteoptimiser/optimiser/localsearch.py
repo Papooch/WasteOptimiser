@@ -32,13 +32,15 @@ class LocalSearch():
         return (magicmatrix + center).tolist()
 
 
-    def generateVicinity(self, point=None, angle=None, mode='uniform', count=30):
+    def generateVicinity(self, point=None, angle=None, mode='uniform', count=20):
         if not point: point = self.offset
         if not angle: angle = self.angle
         center = [*point, angle]
         vicinity = [center]
         if mode == 'uniform':
             rf = lambda: random.uniform(-10,10)
+        elif mode == 'uniform-int':
+            rf = lambda: random.randint(-10,10)
         elif mode == 'gauss':
             rf = lambda: random.gauss(0, 3)
         vicinity.extend([self.getRandomNeighbor(center, rand_func=rf) for _ in range(count)])

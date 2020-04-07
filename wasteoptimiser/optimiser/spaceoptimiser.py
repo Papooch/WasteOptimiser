@@ -130,8 +130,8 @@ class Optimiser:
 
                 npolys = Polygon(nfps[0], [x for x in nfps[1:] if len(x) >= 3])
                 print("OHSHIT!")
-                npolys = npolys.buffer(self.hole_offset, resolution=2)
-
+            
+            npolys = npolys.buffer(self.hole_offset, resolution=2)
             npolys = affinity.translate(npolys, trans[0], trans[1])            
             hole.shape_nfps[shape_hash] = npolys # store the NFP in cache
             return npolys

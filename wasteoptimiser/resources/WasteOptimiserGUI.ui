@@ -484,6 +484,12 @@
             </item>
             <item>
              <widget class="QSpinBox" name="sp_optimiser_nfp_rotations">
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::UpDownArrows</enum>
+              </property>
+              <property name="specialValueText">
+               <string/>
+              </property>
               <property name="suffix">
                <string> rotations</string>
               </property>
@@ -491,7 +497,7 @@
                <number>1</number>
               </property>
               <property name="maximum">
-               <number>8</number>
+               <number>16</number>
               </property>
              </widget>
             </item>

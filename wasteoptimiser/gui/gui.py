@@ -126,6 +126,13 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.api.optimiser.small_first = self.cb_settings_small_first.isChecked()
         self.drawWorkspace()
 
+    def updateSettingsGUI(self):
+        self.sb_settings_width.setValue(self.api.optimiser.width)
+        self.sb_settings_height.setValue(self.api.optimiser.height)
+        self.sb_settings_edge_offset.setValue(self.api.optimiser.edge_offset)
+        self.sb_settings_hole_offset.setValue(self.api.optimiser.hole_offset)
+        self.cb_settings_location.setCurrentIndex(self.api.optimiser.preffered_pos)
+
     def drawShapeInWorkspace(self): #TODO: Delete
         if not self.api.selected_shape_name: return
         self.figure_workspace.drawShapes(self.api.getSelectedShape())
@@ -251,10 +258,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         if not filename:
             return
         self.api.loadWorkspace(filename)
-        self.sb_settings_width.setValue(self.api.optimiser.width)
-        self.sb_settings_height.setValue(self.api.optimiser.height)
-        self.sb_settings_edge_offset.setValue(self.api.optimiser.edge_offset)
-        self.sb_settings_hole_offset.setValue(self.api.optimiser.hole_offset)
+        self.updateSettingsGUI()
         self.drawWorkspace()
 
     def workspaceMouseMotion(self, event):
