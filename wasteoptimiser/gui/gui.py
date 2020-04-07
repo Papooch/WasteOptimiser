@@ -8,6 +8,8 @@ from matplotlib.backends.backend_qt5agg import (
 import os
 Ui_MainWindow, QMainWindow = loadUiType(os.path.join(os.path.dirname(__file__), '../resources/WasteOptimiserGUI.ui'))
 
+from wasteoptimiser.optimiser.localsearch import LocalSearch #TODO: REMOVE
+
 def clamp(val, minv, maxv):
     if val is not None: return min(maxv, max(val, minv))
     else: return 0
@@ -292,6 +294,28 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             elif event.button == 3: # right mouse button
                 pass
             self.stopDeleting()
+        #TODO: DELETE
+        elif event.button == 2:
+            self.api.optimiser.position = (x, y)
+            g_search = LocalSearch(self.api.optimiser.shape,
+                self.api.optimiser.position,
+                self.api.optimiser.angle,
+                self.api.optimiser.circle_radius,
+                self.api.optimiser.holes)
+            print(g_search.getFitness())
+            print()
+            self.drawWorkspace()
+            self.figure_workspace.draw(self.api.optimiser.getShapeOriented())
+            self.figure_workspace.draw(self.api.optimiser.getShapeOrientedDilated(), options='g:')
+            while g_search.step():
+                
+                self.api.optimiser.position = g_search.offset
+                self.api.optimiser.angle = g_search.angle
+                self.figure_workspace.draw(self.api.optimiser.getShapeOriented())
+                self.figure_workspace.draw(self.api.optimiser.getShapeOrientedDilated(), options='g:')
+            self.figure_workspace.draw(self.api.optimiser.getShapeOriented(), options='r-')
+            self.canvasWorkspace.draw()
+
 
     def checkUseNFP(self):
         self.api.settings.use_nfp = self.cb_optimiser_use_nfp.isChecked()

@@ -1,5 +1,6 @@
-from shapely.geometry import Point,Polygon, box
+from shapely.geometry import Point, Polygon, box
 from shapely.geometry.polygon import orient
+from shapely.strtree import STRtree
 from shapely import affinity
 from collections import defaultdict
 
@@ -26,21 +27,6 @@ class Polygon(Polygon):
     angle = 0          # angle of the shape
 
 
-class GreedySearch():
-    def __init__(self, shape, center, radius, holes):
-        self.optimiser = optimiser
-
-        self.area = box(center[0]-radius, center[1]-radius, center[0]+radius, center[1]+radius)
-        # TODO: construct search area
-
-
-    def getFitness(self):
-        pass
-
-    def step(self):
-        pass
-
-
 class Optimiser:
     def __init__(self):
         self.width = 2400       # width of the board
@@ -64,6 +50,10 @@ class Optimiser:
     def holes(self):
         return [*self.hole_holes, *self.hole_shapes]
 
+    @property
+    def shape_rotated(self):
+        return affinity.rotate(self.shape, self.angle, origin=(0,0))
+
     def getShapeHash(self):
         return hash(self.shape.wkt + str(self.hole_offset))
 
@@ -75,7 +65,7 @@ class Optimiser:
 
     def getBoardHolesNFP(self):
         """Returns shrinked board and dilated holes using NFP"""
-        bounds = [abs(x[0]-x[1]) for x in zip(self.shape.bounds, [0, 0, self.width, self.height])]           
+        bounds = [abs(x[0]-x[1]) for x in zip(self.shape_rotated.bounds, [0, 0, self.width, self.height])]           
         shrinkedboard = box(*bounds).buffer(-self.edge_offset)
         dilatedholes = []
         for hole in self.holes:
@@ -90,7 +80,7 @@ class Optimiser:
             if _debug: print("hole ", hole.wkt, " has cached nfp")
             return hole.shape_nfps[shape_hash]
         except KeyError: # it does not exist
-            shapepoints = list(orient(self.shape.convex_hull).exterior.coords)
+            shapepoints = list(orient(self.shape_rotated.convex_hull).exterior.coords)
             holepoints = list(orient(hole.simplify(1)).exterior.coords)
             holepoints = roundCoords(holepoints)
             trans = [- shapepoints[0][0], - shapepoints[0][1]]
@@ -325,14 +315,16 @@ class Optimiser:
 
     def getShapeOriented(self):
         """Returns a list of coordinates of the target shape in the current position and reotation"""
-        rotated = affinity.rotate(self.shape, self.angle, origin='centroid')
+        rotated = affinity.rotate(self.shape, self.angle, origin=(0,0))
         translatedrotated = affinity.translate(rotated, self.position[0], self.position[1])
         return list(translatedrotated.boundary.coords)
 
 
-    def getShapeDilated(self):
+    def getShapeOrientedDilated(self):
         """"Returns the target shape dillated by the given amount"""
-        pass
+        rotated = affinity.rotate(self.shape.buffer(self.circle_radius/2), self.angle, origin='centroid')
+        translatedrotated = affinity.translate(rotated, self.position[0], self.position[1])
+        return list(translatedrotated.boundary.coords)
 
     
     def getShapeNamesPositions(self):
