@@ -75,11 +75,14 @@ class ShapeExtractor:
 
       if self.supressLeadIn:
          outList = []
+         # lead_in = []
          for shape in self._shapeList:
             shape = np.array(shape)
             while np.linalg.norm(shape[0] - shape[-1]) >= self.leadInTolerance:
+               lead_in.append(shape[0])
                shape = shape[1:]
             outList.append(shape.tolist())
+            # if lead_in: outList.append(lead_in)
          return outList
       return self._shapeList
 
@@ -146,8 +149,9 @@ class ShapeExtractor:
 
       if self._absoluteMove:
          start = self._coords
+         center = list(map(add, center, self._coords))
       else:
-         start = [0, 0]       
+         start = [0, 0]
       points = interpolateArc(start, end, center, is_clockwise, self.arcMaxLength, self.arcMaxAngle)
       if not self._absoluteMove:
          points = [list(map(add, point, self._coords)) for point in points]
@@ -192,7 +196,7 @@ if __name__ == "__main__":
    debug = True
 
    gcode = None
-   with open("../../gcode/2-drzak.gcode", 'r') as f:
+   with open("../../gcode/pokus_obly.nc", 'r') as f:
       gcode = f.read()
 
    #print(split_gcode(gcode))
@@ -204,6 +208,8 @@ if __name__ == "__main__":
 
    for shape in reversed(xtr.get_shapes()):
       x, y = zip(*shape)
-      plt.fill(x, y)
+      plt.plot(x, y, "-*")
+
+   print(xtr.get_shapes())
 
    plt.show()
