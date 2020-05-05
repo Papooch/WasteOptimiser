@@ -7,6 +7,7 @@ from wasteoptimiser.parser import gcodeparser
 from wasteoptimiser.optimiser import spaceoptimiser
 from wasteoptimiser.optimiser.localsearch import LocalSearch
 
+
 class Settings():
     width = 100
     height = 100
@@ -20,12 +21,12 @@ class Settings():
 
 
 class Api():
-    def __init__(self):
+    def __init__(self, logger=None):
         self.settings = Settings()
-        self.logger = None
+        self.logger = logger
         self.figure_preview   = None
         self.figure_workspace = None
-        self.optimiser = spaceoptimiser.Optimiser()
+        self.optimiser = spaceoptimiser.Optimiser(logger)
         self.selected_shape_name = None
         self.shape_dict = defaultdict() # key: filename, value: {'count': count, 'shape': shape}}
         
@@ -70,7 +71,6 @@ class Api():
         else:
             self.optimiser.initStartpoly(nfp = False)
             if not self.optimiser.begin(): return False# TODO: error code
-    
 
         if self.settings.local_optimisation:
             g_search = LocalSearch(self.optimiser.shape,
@@ -161,7 +161,7 @@ class Api():
             with open(file, 'r') as f:
                 gcode = f.read()
             if gcode:
-                xtr = gcodeparser.ShapeExtractor(gcode, suppressLeadIn=True)
+                xtr = gcodeparser.ShapeExtractor(gcode, suppressLeadIn=True, logger=self.logger)
                 xtr.run()
         except:
             print('nope')

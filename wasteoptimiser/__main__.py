@@ -3,9 +3,12 @@ from PyQt5 import QtWidgets, QtCore
 
 from wasteoptimiser.api import api
 from wasteoptimiser.gui import figures, gui
+from wasteoptimiser.logger.logger import Logger
+
+logger = Logger("logs", Logger.logLevel.INFO, Logger.logLevel.DEBUG)
 
 # create api object
-wo = api.Api()
+wo = api.Api(logger)
 
 # create figures
 wo.figurePreview    = figures.Figures()
@@ -21,6 +24,8 @@ if show_gui:
     mainWindow.setupCanvases(wo.figurePreview, wo.figureWorkspace)
     mainWindow.setupCallbacks()
     mainWindow.show()
+
+    #logger.setPrintFunction(TODO:)
 
     # fast startup stuff
     mainWindow.openFolder('D:\Ondra\Stuff\OneDrive\VUT\DP\moje\gcode')

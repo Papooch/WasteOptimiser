@@ -2,7 +2,6 @@ import re
 import numpy as np
 from operator import add, sub
 
-
 def cart2pol(x, y):
    """Converts cartesian coordinates to polar"""
 
@@ -56,7 +55,7 @@ def interpolateArc(start, end, center, clockwise=True, maxlength=20, maxangle=.4
 
 
 class ShapeExtractor:
-   def __init__(self, gcode, suppressLeadIn = False, arcMaxAngle = 0.2, arcMaxLength = 10, leadInTolerance = 0.1):
+   def __init__(self, gcode, suppressLeadIn = False, arcMaxAngle = 0.2, arcMaxLength = 10, leadInTolerance = 0.1, logger=None):
       self.gcode = gcode
       self.arcMaxAngle = arcMaxAngle
       self.arcMaxLength = arcMaxLength
@@ -70,6 +69,9 @@ class ShapeExtractor:
       self._coords = [0, 0]
       self._currentShape = []
 
+      self.logger = logger
+      self.log_type = logger.logType.PARSER
+
    def get_shapes(self):
       """Returns list found shapes in gcode, optionally omits the lead-in move"""
 
@@ -79,7 +81,7 @@ class ShapeExtractor:
          for shape in self._shapeList:
             shape = np.array(shape)
             while np.linalg.norm(shape[0] - shape[-1]) >= self.leadInTolerance:
-               lead_in.append(shape[0])
+               # lead_in.append(shape[0])
                shape = shape[1:]
             outList.append(shape.tolist())
             # if lead_in: outList.append(lead_in)
@@ -92,49 +94,83 @@ class ShapeExtractor:
 
       inst_iterator = iter(self._instructions) # create iterator of instruction so we can call next()
       for inst in inst_iterator:
-         mode = self._instruction_mode(inst)
-         if mode == 1:  # move instruction (G)
-            code = int(inst[1:])
-            message = ""
-            if code >= 90: # set absolute or incremental move
+         self._proccess_instruction(inst, inst_iterator)
+         
+
+   def _proccess_instruction(self, inst, inst_iterator):
+      """Processes instruction, can also request the next instruction from the iterator"""
+      mode = self._instruction_mode(inst)
+      if mode == 1:  # move instruction (G)
+         code = int(inst[1:])
+         message = ""
+         if code >= 90: # set absolute or incremental move
+            self._finish_shape()
+            if code == 90:
+               self._absoluteMove = True
+               message = "setting absolute move"
+            elif code == 91:
+               self._absoluteMove = False
+               message = "setting relative move"
+
+         elif code <= 5:
+            if code == 00: # rapid move -> finish current shape
                self._finish_shape()
-               if code == 90:
-                  self._absoluteMove = True
-                  message = "setting absolute move"                
-               elif code == 91:
-                  self._absoluteMove = False
-                  message = "setting relative move"
+               self._penDown = False
+               message = "pen up"
+               #TODO: Add exception checking
 
-            elif code <= 5:
-               if code == 00: # rapid move -> finish current shape
-                  self._finish_shape()
-                  #TODO: Add exception checking
-                  coord = [self._split_coordinates(next(inst_iterator), "X")[1], self._split_coordinates(next(inst_iterator), "Y")[1]]
-                  self._go_straight(coord)
-                  self._penDown = False
-                  message = "pen up"
-               else: # something else, pen down
-                  if self._penDown:
-                     self._currentShape.append(self._coords.copy())
-                  self._penDown = True
-                  message = "pen down"
-               message += " [" + str(round(self._coords[0], 5)) + " " + str(round(self._coords[1], 5)) + "]"
+               x = self._coords[0]
+               y = self._coords[1]
 
-               if code == 1: # straigh line (expexting X#.# Y#.#)
-                  #TODO: add exception checking
-                  coord = [self._split_coordinates(next(inst_iterator), "X")[1], self._split_coordinates(next(inst_iterator), "Y")[1]]
-                  self._go_straight(coord)
-               elif code in [2, 3]: # cw, ccw arc (expecting X#.# Y#.# I#.# J#.#)
-                  #TODO: add exception checking
-                  end = [self._split_coordinates(next(inst_iterator), "X")[1], self._split_coordinates(next(inst_iterator), "Y")[1]]
-                  center = [self._split_coordinates(next(inst_iterator), "I")[1], self._split_coordinates(next(inst_iterator), "J")[1]]
-                  cw = True
-                  if code == 3: cw = False
-                  self._go_arc(end, center, cw)
+               while True:
+                  next_inst = next(inst_iterator)
+                  split = self._split_coordinates(next_inst)
+                  cmd = split[0]
+                  if cmd != 'X' and cmd != 'Y' and cmd !='Z':
+                     self._go_straight([x, y])
+                     self._proccess_instruction(next_inst, inst_iterator)
+                     return
+                  elif cmd == 'X':
+                     x = split[1]
+                  elif cmd == 'Y':
+                     y = split[1]
+            else: # something else, pen down
+               if self._penDown:
+                  self._currentShape.append(self._coords.copy())
+               self._penDown = True
+               message = "pen down"
+            message += " [" + str(round(self._coords[0], 5)) + " " + str(round(self._coords[1], 5)) + "]"
 
-            else:
-               continue
-            if 'debug' in globals() and debug: print(inst, message)
+            if code == 1: # straigh line (expexting X#.# Y#.#)
+               #TODO: add exception checking
+               x = self._coords[0]
+               y = self._coords[1]
+
+               while True:
+                  next_inst = next(inst_iterator)
+                  split = self._split_coordinates(next_inst)
+                  cmd = split[0]
+                  if cmd != 'X' and cmd != 'Y' and cmd !='Z':
+                     self._go_straight([x, y])
+                     self._proccess_instruction(next_inst, inst_iterator)
+                     return
+                  elif cmd == 'X':
+                     x = split[1]
+                  elif cmd == 'Y':
+                     y = split[1]
+
+            elif code in [2, 3]: # cw, ccw arc (expecting X#.# Y#.# I#.# J#.#)
+               #TODO: add exception checking
+               end = [self._split_coordinates(next(inst_iterator), "X")[1], self._split_coordinates(next(inst_iterator), "Y")[1]]
+               center = [self._split_coordinates(next(inst_iterator), "I")[1], self._split_coordinates(next(inst_iterator), "J")[1]]
+               cw = True
+               if code == 3: cw = False
+               self._go_arc(end, center, cw)
+
+         else:
+            return
+         self.logger.log(inst + " " + message, 0, self.log_type)
+
 
 
    def _go_straight(self, end):
@@ -167,7 +203,7 @@ class ShapeExtractor:
          self._currentShape.append(self._coords.copy())
          self._shapeList.append(self._currentShape)
          self._currentShape = []
-         if 'debug' in globals() and debug: print("Shape finished")
+         self.logger.log("Shape finished", 0, self.log_type)
 
 
    def _instruction_mode(self, inst):
@@ -186,21 +222,27 @@ class ShapeExtractor:
       """Return a tuple of Letter and Value of an instruction, optionally checks for expected letter"""
 
       if expecting and expecting != inst[0]:
-            raise ValueError(f'Expected {expecting}, got {inst[0]}')     
+            raise ValueError(f'Expected {expecting}, got {inst[0]}')
       return (inst[0], float(inst[1:]))
 
 
 if __name__ == "__main__":
    import matplotlib.pyplot as plt
 
-   debug = True
+   import sys
+   from os import path
+   sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+   from logger.logger import Logger, logLevel, logType
+
+   l = Logger(log_file_dir="logs", min_print_level=logLevel.INFO)
+   l.log("Logger ready")
 
    gcode = None
-   with open("../../gcode/pokus_obly.nc", 'r') as f:
+   with open("../../gcode/pokus_obly_2.nc", 'r') as f:
       gcode = f.read()
 
    #print(split_gcode(gcode))
-   xtr = ShapeExtractor(gcode)
+   xtr = ShapeExtractor(gcode, logger=l)
    xtr.supressLeadIn = True
    xtr.run()
 
@@ -209,7 +251,5 @@ if __name__ == "__main__":
    for shape in reversed(xtr.get_shapes()):
       x, y = zip(*shape)
       plt.plot(x, y, "-*")
-
-   print(xtr.get_shapes())
 
    plt.show()

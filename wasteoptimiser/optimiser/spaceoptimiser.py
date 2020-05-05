@@ -32,7 +32,10 @@ class Polygon(Polygon):
 
 
 class Optimiser:
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
+        self.log_type = logger.logType.OPTIMISER
+
         self.width = 2400       # width of the board
         self.height = 1400      # height of the board
         self.edge_offset = 0    # offset from edge of board
@@ -75,7 +78,7 @@ class Optimiser:
         for hole in self.holes:
             npolys = self.getNFPForHole(hole)
             if not npolys:
-                print(f"couldn't compute NFP for {hole.name}, falling back to circle")
+                logger.log(f"couldn't compute NFP for {hole.name}, falling back to circle", logger.logLevel.ERROR, self.log_type)
                 npolys = hole.buffer(self.circle_radius + self.hole_offset)
             dilatedholes.append(npolys)
         return [shrinkedboard, dilatedholes]
@@ -129,7 +132,7 @@ class Optimiser:
                 #nfps[1:] = [[*x, *[x[-1]]*(3-len(x))] if len(x) < 3 else x for x in nfps[1:]]
 
                 npolys = Polygon(nfps[0], [x for x in nfps[1:] if len(x) >= 3])
-                print("OHSHIT!")
+                self.logger.log("OHSHIT!", logger.logLevel.WARNING, self.log_type)
             
             npolys = npolys.buffer(self.hole_offset, resolution=2)
             npolys = affinity.translate(npolys, trans[0], trans[1])            
