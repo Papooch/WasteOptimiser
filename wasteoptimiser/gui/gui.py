@@ -15,6 +15,31 @@ def clamp(val, minv, maxv):
     if val is not None: return min(maxv, max(val, minv))
     else: return 0
 
+class InputControl():
+    def __init__(self, name, spinbox, checkbox):
+        self.name = name
+        self.spinbox = spinbox
+        self.checkbox = checkbox
+
+    def getName(self):
+        return self.name
+
+    def getCount(self):
+        return self.spinbox.value()
+
+    def setCount(self, val):
+        self.spinbox.setValue(val)
+
+    def getConvex(self):
+        return self.checkbox.isChecked()
+
+    def setConvex(self, val):
+        self.checkbox.setChecked(val)
+
+    def reset(self):
+        self.setCount(0)
+        self.setConvex(True)
+
 
 class MyGroupBox(QtWidgets.QGroupBox):
     """Ectending functionality of QGroupBox - hover and click events"""
@@ -22,7 +47,6 @@ class MyGroupBox(QtWidgets.QGroupBox):
     name = "nothing"
     click_callback = print
 
-    
     style_QGroupBox_normal = """
     """
 
@@ -79,6 +103,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.drawn_shape_handle = None
         self.info_message = ""
         self.hole_to_remove = None
+        self.input_list = []
 
     ## FUNCTIONS ##
     def openFolder(self, folder):
@@ -364,7 +389,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
     def fillInputList(self, items):
         for item in items:
-            self.createInputListItem(item)
+            self.input_list.append(self.createInputListItem(item))
         self.layout_input_list.addStretch()
 
     def createInputListItem(self, name):
@@ -373,29 +398,48 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         gb = MyGroupBox()
         gbl = QtWidgets.QHBoxLayout()
         gb.setLayout(gbl)
-        lbl = QtWidgets.QLabel(name)
-        splbl = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,QtWidgets.QSizePolicy.Preferred)
-        splbl.setHorizontalStretch(2)
-        lbl.setSizePolicy(splbl)
         gb.setMouseTracking(True)
         gb.setAttribute(QtCore.Qt.WA_Hover)
         gb.info = name
         gb.click_callback = self.selectAndDrawShape
-        gbl.addWidget(lbl)
+        
+        
+        lbl = QtWidgets.QLabel(name)
+        splbl = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,QtWidgets.QSizePolicy.Preferred)
+        splbl.setHorizontalStretch(3)
+        lbl.setSizePolicy(splbl)
+        
         spb = QtWidgets.QSpinBox()
         spspb = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,QtWidgets.QSizePolicy.Preferred)
         spspb.setHorizontalStretch(1)
         spb.setSizePolicy(spspb)
-        gbl.addWidget(spb)
         spb.valueChanged.connect(lambda x: self.api.setShapeCount(lbl.text(), spb.value()))
+
+        chkb = QtWidgets.QCheckBox("Convex")
+        chkb.setChecked(True)
+        spchcb = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,QtWidgets.QSizePolicy.Preferred)
+        spchcb.setHorizontalStretch(1)
+        chkb.setSizePolicy(spchcb)
+        chkb.stateChanged.connect(lambda x: self.api.setShapeConvex(lbl.text(), bool(x)))
+
+        gbl.addWidget(spb)
+        gbl.addWidget(lbl)
+        gbl.addWidget(chkb)
         layout.addWidget(gb)
+        return InputControl(name, spb, chkb)
 
     def clearInputList(self):
+        self.input_list = []
         layout = self.layout_input_list
         while layout.count():
             child = layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
+
+    def clearInputShapeCounts(self):
+        for item in self.input_list:
+            item.reset()
+            self.api.setShapeCount(item.name, 0)
 
     ## SETUP ##
     def setupCanvases(self, fPreview, fWorkspace):
@@ -409,8 +453,9 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.canvasWorkspace.draw()
 
     def setupCallbacks(self):
-        # select gcode folder
+        # input control
         self.pb_input_browse.clicked.connect(self.askFolder)
+        self.pb_input_clear.clicked.connect(self.clearInputShapeCounts)
 
         # appy settings
         self.pb_settings_apply.clicked.connect(self.applySettings)

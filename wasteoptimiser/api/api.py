@@ -28,7 +28,8 @@ class Api():
         self.figure_workspace = None
         self.optimiser = spaceoptimiser.Optimiser(logger)
         self.selected_shape_name = None
-        self.shape_dict = defaultdict() # key: filename, value: {'count': count, 'shape': shape}}
+        self.shape_dict = defaultdict()
+            # key: filename, value: {'count': count, 'shape': shape, 'convex': bool}}
         
         self.stop_flag = False
         self.num_shapes_to_place = 0
@@ -39,6 +40,7 @@ class Api():
         if self.getSelectedShapeCount() == 0: return None# TODO: error code
         self.optimiser.setShape(self.getSelectedShape()[-1])
         self.optimiser.angle = 0
+        self.optimiser.convex_hull = self.isSelectedShapeConvex()
 
         if self.settings.use_nfp:
 
@@ -77,7 +79,10 @@ class Api():
                 self.optimiser.position,
                 self.optimiser.angle,
                 self.optimiser.circle_radius,
-                self.optimiser.holes)
+                self.optimiser.holes,
+                self.optimiser.getBoardShape(),
+                self.optimiser.hole_offset,
+                self.optimiser.edge_offset)
             while g_search.fail_counter < 3:
                 g_search.step()
                 self.optimiser.position = g_search.offset
@@ -114,13 +119,18 @@ class Api():
     def getSelectedShapeCount(self):
         return self.shape_dict[self.selected_shape_name]['count']
 
+    def isSelectedShapeConvex(self):
+        return self.shape_dict[self.selected_shape_name]['convex']
 
     def getSelectedShape(self):
         return self.shape_dict[self.selected_shape_name]['shape']
 
-
     def setShapeCount(self, shape, count):
         self.shape_dict[shape]['count'] = count
+
+    def setShapeConvex(self, shape, convex):
+        print(shape + " convex: " + str(convex))
+        self.shape_dict[shape]['convex'] = bool(convex)
 
 
     def constructShapeList(self, folder = None):
@@ -129,7 +139,7 @@ class Api():
         for filename in self.getGcodes(folder):
             shape = self.getShapesFromGcode(os.path.join(folder, filename))
             if shape:
-                self.shape_dict[filename] = {'count': 0, 'shape': shape}
+                self.shape_dict[filename] = {'count': 0, 'shape': shape, 'convex' : True}
 
 
     def getGcodes(self, folder = None):
@@ -164,7 +174,7 @@ class Api():
                 xtr = gcodeparser.ShapeExtractor(gcode, suppressLeadIn=True, logger=self.logger)
                 xtr.run()
         except:
-            print('nope')
+            self.logger.log(f'{os.path.basename(file)} is not a valid NC program', self.logger.logLevel.WARNING, self.logger.logType.PARSER)
             return []
 
         shapes = xtr.get_shapes()

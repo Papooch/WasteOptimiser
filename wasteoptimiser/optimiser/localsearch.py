@@ -1,20 +1,21 @@
 import random
 import numpy as np
 from shapely import affinity
+from shapely.geometry import Polygon
 from shapely.strtree import STRtree
 
 
 class LocalSearch():
-    def __init__(self, shape, center, angle, radius, holes):
+    def __init__(self, shape, center, angle, radius, holes, board, hole_offset, edge_offset):
         #self.optimiser = optimiser
         self.offset = center
         self.angle = angle
-        self.shape = shape
+        self.shape = shape.buffer(hole_offset)
+        self.board = Polygon(board).buffer(hole_offset).buffer(-edge_offset)
         self.shape_buffer = shape.buffer(radius/2)
         self.current_max = float('-inf')
         self.fail_counter = 0
 
-        #self.search_area = box(center[0]-radius, center[1]-radius, center[0]+radius, center[1]+radius)
         self.tree = STRtree(holes)
 
 
@@ -56,6 +57,7 @@ class LocalSearch():
         overlaps = [h for h in self.tree.query(shape)]
         for h in overlaps:
             area += shape.intersection(h).area
+        area += shape.difference(self.board).area
         return area
 
 

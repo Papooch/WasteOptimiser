@@ -220,10 +220,14 @@ class ShapeExtractor:
 
    def _split_coordinates(self, inst, expecting=""):
       """Return a tuple of Letter and Value of an instruction, optionally checks for expected letter"""
-
+      if not inst: return ("","")
       if expecting and expecting != inst[0]:
             raise ValueError(f'Expected {expecting}, got {inst[0]}')
-      return (inst[0], float(inst[1:]))
+      try:
+         val = float(inst[1:])
+      except:
+         val = inst[1:]
+      return (inst[0], val)
 
 
 if __name__ == "__main__":
@@ -238,7 +242,7 @@ if __name__ == "__main__":
    l.log("Logger ready")
 
    gcode = None
-   with open("../../gcode/pokus_obly_2.nc", 'r') as f:
+   with open("../../gcode/dick.nc", 'r') as f:
       gcode = f.read()
 
    #print(split_gcode(gcode))

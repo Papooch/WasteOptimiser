@@ -50,6 +50,7 @@ class Optimiser:
         self.circle_radius = 0  # radius of smallest enclosing circle of shape
         self.position = [0, 0]  # offset position of shape to be placed
         self.angle = 0          # angle (around centroid) of shape to be placed
+        self.convex_hull = True # if true, work with the convex hull of the object
 
         self.startpolygons = [] # lsit of possible starting polygons (polygons along which boundaries to start optimisation)
 
@@ -78,7 +79,7 @@ class Optimiser:
         for hole in self.holes:
             npolys = self.getNFPForHole(hole)
             if not npolys:
-                logger.log(f"couldn't compute NFP for {hole.name}, falling back to circle", logger.logLevel.ERROR, self.log_type)
+                self.logger.log(f"couldn't compute NFP for {hole.name}, falling back to circle", self.logger.logLevel.ERROR, self.log_type)
                 npolys = hole.buffer(self.circle_radius + self.hole_offset)
             dilatedholes.append(npolys)
         return [shrinkedboard, dilatedholes]
@@ -90,7 +91,9 @@ class Optimiser:
             if _debug: print("hole ", hole.wkt, " has cached nfp")
             return hole.shape_nfps[shape_hash]
         except KeyError: # it does not exist
-            shapepoints = list(orient(self.shape_rotated.convex_hull).exterior.coords)
+            shapepoints = list(orient(self.shape_rotated).exterior.coords)
+            if self.convex_hull:
+                shapepoints = list(orient(self.shape_rotated.convex_hull).exterior.coords)
             holepoints = list(orient(hole.simplify(1)).exterior.coords)
             holepoints = roundCoords(holepoints)
             trans = [- shapepoints[0][0], - shapepoints[0][1]]
@@ -215,7 +218,9 @@ class Optimiser:
 
     def addShapeAsHole(self, name='undefined'):
         """Adds a hole in the shape of the current shape with the current position"""
-        newhole = Polygon(self.getShapeOriented()).convex_hull
+        newhole = Polygon(self.getShapeOriented())
+        if self.convex_hull:
+            newhole = newhole.convex_hull
         newhole.shape_nfps = defaultdict()
         newhole.name = name
         newhole.position = self.position
