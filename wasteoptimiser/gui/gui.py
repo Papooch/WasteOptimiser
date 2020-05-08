@@ -196,6 +196,13 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.optimiserThread.start()
         #self.api.placeAllSelectedShapes()
         #self.api.optimiser.getShapeNamesPositions()
+
+    def debug_placeOneShape(self):
+        print("printing ", self.api.selected_shape_name)
+        self.api.optimiser.setShape(self.api.getSelectedShape()[-1])
+        self.api.optimiser.initStartpoly()
+        self.figure_workspace.drawShapes(self.api.optimiser.getStartpoly(), '+:r')
+        self.canvasWorkspace.draw()
         
 
     def optimisationEnded(self):
@@ -478,8 +485,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.pb_optimiser_stop.clicked.connect(self.api.stopPlacing)
         self.cb_optimiser_use_nfp.clicked.connect(self.checkUseNFP)
         self.cb_optimiser_local_optimisation.clicked.connect(self.checkLocalOptimisation)
-        self.pb_optimiser_add_as_hole.clicked.connect(self.api.optimiser.addShapeAsHole)
         self.sp_optimiser_nfp_rotations.valueChanged.connect(self.setNFPRotations)
+        
+        # debug
+        self.pb_optimiser_debug_add_as_hole.clicked.connect(self.api.optimiser.addShapeAsHole)
+        self.pb_optimiser_debug_place_one.clicked.connect(self.debug_placeOneShape)
 
         # workspace figure callback
         self.canvasWorkspace.mpl_connect('motion_notify_event', self.workspaceMouseMotion)

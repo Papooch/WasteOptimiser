@@ -604,11 +604,22 @@
            </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="pb_optimiser_add_as_hole">
-            <property name="text">
-             <string>(temp) Add as hole</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QPushButton" name="pb_optimiser_debug_place_one">
+              <property name="text">
+               <string>(DEBUG) Place one</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pb_optimiser_debug_add_as_hole">
+              <property name="text">
+               <string>(DEBUG) Add as hole</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QPushButton" name="pb_optimiser_history">

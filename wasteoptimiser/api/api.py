@@ -30,7 +30,7 @@ class Api():
         self.selected_shape_name = None
         self.shape_dict = defaultdict()
             # key: filename, value: {'count': count, 'shape': shape, 'convex': bool}}
-        
+
         self.stop_flag = False
         self.num_shapes_to_place = 0
         self.num_placed_shapes = 0
@@ -44,32 +44,38 @@ class Api():
         if self.settings.use_nfp:
 
             if self.optimiser.preffered_pos == 0: # top left
-                pref = lambda p: -p[0] + p[1] 
+                pref = lambda p: -p[0] + p[1]
             if self.optimiser.preffered_pos == 1: # top right
-                pref = lambda p: p[0] + p[1] 
+                pref = lambda p: p[0] + p[1]
             if self.optimiser.preffered_pos == 2: # bottom left
-                pref = lambda p: -p[0] - p[1] 
+                pref = lambda p: -p[0] - p[1]
             if self.optimiser.preffered_pos == 3: # bottom right
-                pref = lambda p: p[0] - p[1] 
+                pref = lambda p: p[0] - p[1]
             if self.optimiser.preffered_pos == 4: # Left
                 pref = lambda p: -p[0]
             if self.optimiser.preffered_pos == 5: # Right
-                pref = lambda p: p[0] 
+                pref = lambda p: p[0]
 
             angles = list(np.linspace(0, 360, self.settings.nfp_rotations, endpoint=False))
             angles.append(self.optimiser.angle)
             start_points = []
+            start_angles = []
             for angle in angles:
                 self.optimiser.angle = angle
                 self.optimiser.initStartpoly(nfp = True)
                 if self.optimiser.begin():
+                    print("angle ok: ", angle)
                     start_points.append(self.optimiser.position)
-            
+                    start_angles.append(angle)
+
+            print(start_points)
             if not start_points:
                 return False# TODO: error code
             max_index, max_value = max(enumerate(start_points), key=lambda p: pref(p[1]))
+            print("index: ", max_index, "value: ", max_value)
             self.optimiser.position = max_value
-            self.optimiser.angle = angles[max_index]
+            self.optimiser.angle = start_angles[max_index]
+            print("chosen angle: ", self.optimiser.angle)
         else:
             self.optimiser.initStartpoly(nfp = False)
             if not self.optimiser.begin(): return False# TODO: error code
@@ -90,7 +96,7 @@ class Api():
 
         self.optimiser.addShapeAsHole(self.selected_shape_name)
         return True
-    
+
     def placeAllSelectedShapes(self):
         self.num_shapes_to_place = self.getAllShapesCount()
         self.num_placed_shapes = 0
@@ -200,14 +206,14 @@ class Api():
         inw = ()
         with open(file, "r") as infile:
             inw = json.load(infile)
-        self.optimiser.__init__()
+        self.optimiser.__init__(self.logger)
         self.optimiser.width = inw['width']
         self.optimiser.height = inw['height']
         for hole in inw['holes']:
             self.optimiser.addHole(hole)
         self.optimiser.hole_offset = inw['h_offset']
         self.optimiser.edge_offset = inw['e_offset']
-        
+
 
 
 

@@ -29,12 +29,12 @@ If you decide to go with the recommended way, you will need to define two system
 ### Visual Studio (Windows)
 For Windows users, there is an auto build script provided inside `wasteoptimiser/nfp_interface`. It requires you to have cmake and Visual Studio 2017/2019 (for other versions, a slight modification of the script is needed).
 
-In command prompt just `cd` to the `wasteoptimiser/nfp_interface` folder and then run it with `./build`. It should automatically load the Developer Command Command Prompt for Visual Studio. If it does not, you have to open it manually (Just start typing "Developer C..." into the search field and it should come right up, then proceed to launch the script from that). Then it will detect the Python version and build the library for you.
+In command prompt just `cd` to the `wasteoptimiser/nfp_interface` folder and then run it with `./build`. It should automatically load the Developer Command Prompt for Visual Studio. If it does not, you have to open it manually (Just start typing "Developer C..." into the search field and it should come right up, then proceed to launch the script from that). Then it will detect the Python version (64/32bit) and build the corresponding library for you.
 
 When you see no errors in the output, you can assume the library has been correctly built and a new file named libnfporb_interface.pyd will appear in the folder.
 
 ### Other Platforms
-Use `cmake`, in  to generate the project for your favourite compiler with the `CmakeLists.txt` file provided
+Use `cmake` to generate the project for your favourite compiler with the `CmakeLists.txt` file provided. In the `wasteoptimiser/nfp_interface` folder, run:
 ```
 mkdir build
 cd build
