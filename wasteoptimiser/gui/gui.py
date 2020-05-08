@@ -108,11 +108,11 @@ class MainWindow(Ui_MainWindow, QMainWindow):
     ## FUNCTIONS ##
     def openFolder(self, folder):
         """Displays files from the given folder in list"""
-
+        if not folder: return
         self.api.settings.input_path = folder
         self.api.constructShapeList(self.api.settings.input_path)
         items = self.api.shape_dict.keys()
-        self.lb_input_path.setText('...' + folder[-20:])
+        self.lb_input_path.setText('...' + folder[-30:])
         self.clearInputList()
         self.fillInputList(items)
 
@@ -213,7 +213,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
 
 
     def clearWorkspace(self):
-        self.api.optimiser.__init__()
+        self.api.optimiser.__init__(self.api.logger)
         self.applySettings()
 
     def clearShapes(self):

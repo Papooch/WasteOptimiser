@@ -28,7 +28,10 @@ if show_gui:
     #logger.setPrintFunction(TODO:)
 
     # fast startup stuff
-    mainWindow.openFolder('D:\Ondra\Stuff\OneDrive\VUT\DP\moje\gcode')
+    try:
+        mainWindow.openFolder('D:\Ondra\Stuff\OneDrive\VUT\DP\moje\gcode')
+    except:
+        pass
     mainWindow.applySettings()
 
     sys.exit(qtgui.exec_())

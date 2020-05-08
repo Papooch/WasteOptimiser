@@ -39,7 +39,6 @@ class Api():
         if not self.selected_shape_name: return None# TODO: error code
         if self.getSelectedShapeCount() == 0: return None# TODO: error code
         self.optimiser.setShape(self.getSelectedShape()[-1])
-        self.optimiser.angle = 0
         self.optimiser.convex_hull = self.isSelectedShapeConvex()
 
         if self.settings.use_nfp:
@@ -57,7 +56,8 @@ class Api():
             if self.optimiser.preffered_pos == 5: # Right
                 pref = lambda p: p[0] 
 
-            angles = np.linspace(0, 360, self.settings.nfp_rotations, endpoint=False)
+            angles = list(np.linspace(0, 360, self.settings.nfp_rotations, endpoint=False))
+            angles.append(self.optimiser.angle)
             start_points = []
             for angle in angles:
                 self.optimiser.angle = angle
