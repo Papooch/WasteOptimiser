@@ -9,6 +9,7 @@ It implements a shape nesting algorithm. It can be used as a GUI app, or you can
 required dependencies: 
 * Shapely library
 * numpy
+* pybind11 (!required even as of now, even if not using libnfporb, TODO: make optional)
 
 optional dependencies:
 * PyQt5, and therefore:
@@ -16,6 +17,7 @@ optional dependencies:
 * libnfporb_interface (c++), and therefore:
     * Boost library (<= 1.65),
     * cmake
+    * pybind11
 
 While the app itself is written in Python, a part of it relies on the libnfporb library by Amir Hasan (kalabala) TODO: (link) written in c++, which must be built before (see Building libnfporb), but it can be used without it, as there is a faster but way less accurate fallback algorithm in place.
 
