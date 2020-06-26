@@ -22,16 +22,15 @@ class Figures():
     def clear(self):
         self.ax.clear()
 
-    def drawShapes(self, shapes, options = '-k', filled=False, gid = None):
+    def drawShapes(self, shapes, options = '-k', fill=None, gid = None):
         for shape in reversed(shapes):
-            self.draw(shape, options, filled=filled, gid=gid)
+            self.draw(shape, options, fill=fill, gid=gid)
 
-    def draw(self, points, options = '-k', filled=False, gid = None):
+    def draw(self, points, options = '-k', fill=None, gid = None):
         try:
-            if filled:
-                self.ax.fill(*zip(*points), options, gid=gid)
-            else:
-                self.ax.plot(*zip(*points), options, gid=gid)
+            if fill is not None:
+                self.ax.fill(*zip(*points), fill, gid=gid)
+            self.ax.plot(*zip(*points), options, gid=gid)
         except:
             self.ax.plot(points[0], points[1], options, gid=gid)
 

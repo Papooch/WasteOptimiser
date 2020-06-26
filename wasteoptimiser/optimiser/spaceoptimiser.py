@@ -29,6 +29,7 @@ class Polygon(Polygon):
     name = "undefined" # friendly name to identify the shape
     position = [0,0]   # position of the shape on the board (reference point is circle_center)
     angle = 0          # angle of the shape
+    origin = [0,0]
 
 
 class Optimiser:
@@ -102,27 +103,27 @@ class Optimiser:
             try:
                 nfps = genNFP(holepoints, shapepoints)
             except RuntimeError as err:
-                print("WTF?: ", err)
+                self.logger.log("WTF?: " + str(err), self.logger.logLevel.DEBUG, self.log_type)
                 holepoints = roundCoords(holepoints)
                 try:
                     nfps = genNFP(holepoints, shapepoints)
                 except Exception as ee:
-                    print("WTF!!!", ee)
+                    self.logger.log("WTF!!!" + str(ee), self.logger.logLevel.DEBUG, self.log_type)
                     holepoints = intCoords(holepoints)
                     shapepoints = intCoords(shapepoints)
                     try:
                         nfps = genNFP(holepoints, shapepoints)
                     except Exception as ee:
-                        print("WTF??????????", ee)
+                        self.logger.log("WTF??????????" + str(ee), self.logger.logLevel.DEBUG, self.log_type)
                         holepoints[0] = [holepoints[0][0]-1,holepoints[0][1]-1] #unhacky unhack
                         holepoints[-1] = holepoints[0]
                         try:
                             nfps = genNFP(holepoints, shapepoints)
                         except Exception as ee:
-                            print("I quit.", ee)
+                            self.logger.log("Falling back to circle" + str(ee), self.logger.logLevel.DEBUG, self.log_type)
                             return None
             except:
-                print("WTF!!???!")
+                print("Fatal error")
             if _debug: print("storing new NFP for hole ", hole.wkt)
 
             try:
@@ -182,7 +183,7 @@ class Optimiser:
             # import pdb;
             # pdb.set_trace()
 
-            print("ain't no place for this wicked")
+            #print("ain't no place for this wicked")
             return False
         if self.small_first:            
             beginpolys = [min(self.startpolygons, key= lambda x: x.area)]
@@ -194,16 +195,18 @@ class Optimiser:
 
         if self.preffered_pos == 0: # top left
             pref = lambda p: -p[0] + p[1] 
-        if self.preffered_pos == 1: # top right
+        elif self.preffered_pos == 1: # top right
             pref = lambda p: p[0] + p[1] 
-        if self.preffered_pos == 2: # bottom left
+        elif self.preffered_pos == 2: # bottom left
             pref = lambda p: -p[0] - p[1] 
-        if self.preffered_pos == 3: # bottom right
+        elif self.preffered_pos == 3: # bottom right
             pref = lambda p: p[0] - p[1] 
-        if self.preffered_pos == 4: # Left
+        elif self.preffered_pos == 4: # Left
             pref = lambda p: -p[0]
-        if self.preffered_pos == 5: # Right
+        elif self.preffered_pos == 5: # Right
             pref = lambda p: p[0] 
+        elif self.preffered_pos == 6: # Right
+            pref = lambda p: p[1] 
         beginpoint = max(beginpoints, key=pref)
         self.position = beginpoint
         if _debug: print(self.position)
@@ -225,6 +228,8 @@ class Optimiser:
         newhole.name = name
         newhole.position = self.position
         newhole.angle = self.angle
+        newhole.origin = affinity.rotate(Point(-self.circle_center[0], -self.circle_center[1]), self.angle, origin=(0,0))
+        newhole.origin = affinity.translate(newhole.origin, self.position[0], self.position[1])
         self.hole_shapes.append(newhole)
 
 

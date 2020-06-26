@@ -135,7 +135,13 @@ class MainWindow(Ui_MainWindow, QMainWindow):
             self.lb_preview_info.setText("Invalid gcode file")
         else:
             self.api.selected_shape_name = name
-            self.figure_preview.drawShapes(shapes)
+
+            first_shape = [shapes[-1]]
+            next_shapes = shapes[:-1]
+
+            self.figure_preview.drawShapes(first_shape, 'r-', fill="#f6929c")
+            self.figure_preview.drawShapes(next_shapes, 'r-', fill="#ffffff")
+
             self.figure_preview.draw([[0, 0]], 'r+')
             dimensions = self.api.getShapeDimensions()
             self.lb_preview_info.setText("Dimensions: " + str(round(dimensions[0],3)) + " x " + str(round(dimensions[1], 3)) + " mm")
@@ -171,10 +177,10 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.figure_workspace.draw(self.api.optimiser.getBoardShape())
         holes = self.api.optimiser.getHoles('holes')
         if holes:
-            self.figure_workspace.drawShapes(holes, options='b-', filled=False)
+            self.figure_workspace.drawShapes(holes, options='k--', fill="#aaaaaa")
         holes = self.api.optimiser.getHoles('shapes')
         if holes:
-            self.figure_workspace.drawShapes(holes, options='k-')
+            self.figure_workspace.drawShapes(holes, options='r-', fill="#f6929c")
         self.canvasWorkspace.draw()
 
     def startOptimisation(self):
@@ -193,9 +199,12 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.progressBarUpdateTimer = QtCore.QTimer()
         self.progressBarUpdateTimer.timeout.connect(self.updateOptimisationProgressBar)
         self.progressBarUpdateTimer.start(100)
+
+        self.workspaceUpdateTimer = QtCore.QTimer()
+        self.workspaceUpdateTimer.timeout.connect(self.drawWorkspace)
+        self.workspaceUpdateTimer.start(2000)
+
         self.optimiserThread.start()
-        #self.api.placeAllSelectedShapes()
-        #self.api.optimiser.getShapeNamesPositions()
 
     def debug_placeOneShape(self):
         print("printing ", self.api.selected_shape_name)
@@ -210,6 +219,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.progress_bar_optimisation.setVisible(False)
         self.pb_optimiser_start.setVisible(True)
         self.progressBarUpdateTimer.stop()
+        self.workspaceUpdateTimer.stop()
         print("optimisation finished")
         self.drawWorkspace()
         self.canvasWorkspace.draw()
@@ -299,8 +309,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.lb_workspace_info.setText(self.info_message + ' [' + str(round(x, 2)) + ', ' + str(round(y, 2)) + ']')
 
         if self.mode == Mode.drawing or self.mode == Mode.subtracting:
-            pointopt = 'b+'
-            lineopt = 'b--'
+            pointopt = 'k+'
+            lineopt = 'k--'
             if self.mode == Mode.subtracting: pointopt = 'r+';lineopt = 'r--'
             self.figure_workspace.remove('temp')
             if not self.first_point:
@@ -328,8 +338,8 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         x = clamp(event.xdata, 0, self.api.optimiser.width)
         y = clamp(event.ydata, 0, self.api.optimiser.height)
         if self.mode == Mode.drawing or self.mode == Mode.subtracting:
-            shapeopt = 'b-'
-            lineopt = 'b--'
+            shapeopt = 'k-'
+            lineopt = 'k--'
             if self.mode == Mode.subtracting: shapeopt = 'r-'; lineopt = 'r--'
             if event.button == 1: # left mouse button
                 self.figure_workspace.remove('new_shape')

@@ -45,16 +45,18 @@ class Api():
 
             if self.optimiser.preffered_pos == 0: # top left
                 pref = lambda p: -p[0] + p[1]
-            if self.optimiser.preffered_pos == 1: # top right
+            elif self.optimiser.preffered_pos == 1: # top right
                 pref = lambda p: p[0] + p[1]
-            if self.optimiser.preffered_pos == 2: # bottom left
+            elif self.optimiser.preffered_pos == 2: # bottom left
                 pref = lambda p: -p[0] - p[1]
-            if self.optimiser.preffered_pos == 3: # bottom right
+            elif self.optimiser.preffered_pos == 3: # bottom right
                 pref = lambda p: p[0] - p[1]
-            if self.optimiser.preffered_pos == 4: # Left
+            elif self.optimiser.preffered_pos == 4: # Left
                 pref = lambda p: -p[0]
-            if self.optimiser.preffered_pos == 5: # Right
+            elif self.optimiser.preffered_pos == 5: # Right
                 pref = lambda p: p[0]
+            elif self.optimiser.preffered_pos == 6: # Top
+                pref = lambda p: p[1]
 
             angles = list(np.linspace(0, 360, self.settings.nfp_rotations, endpoint=False))
             angles.append(self.optimiser.angle)
@@ -64,18 +66,17 @@ class Api():
                 self.optimiser.angle = angle
                 self.optimiser.initStartpoly(nfp = True)
                 if self.optimiser.begin():
-                    print("angle ok: ", angle)
+                    #print("angle ok: ", angle)
                     start_points.append(self.optimiser.position)
                     start_angles.append(angle)
 
-            print(start_points)
             if not start_points:
                 return False# TODO: error code
             max_index, max_value = max(enumerate(start_points), key=lambda p: pref(p[1]))
-            print("index: ", max_index, "value: ", max_value)
+            #print("index: ", max_index, "value: ", max_value)
             self.optimiser.position = max_value
             self.optimiser.angle = start_angles[max_index]
-            print("chosen angle: ", self.optimiser.angle)
+            #print("chosen angle: ", self.optimiser.angle)
         else:
             self.optimiser.initStartpoly(nfp = False)
             if not self.optimiser.begin(): return False# TODO: error code
@@ -111,7 +112,8 @@ class Api():
                     print("halted by user")
                     return
                 if not self.placeSelectedShape():
-                    print("no more", self.selected_shape_name, "can be placed")
+                    print("no more", self.selected_shape_name, "can be placed!")
+                    self.num_shapes_to_place -= 1
                     break
                 self.num_placed_shapes += 1
                 print(self.selected_shape_name, "placed (", self.num_placed_shapes, "/", self.num_shapes_to_place, ")")
@@ -141,6 +143,9 @@ class Api():
 
     def constructShapeList(self, folder = None):
         """Constructs shape_dict"""
+
+        if not folder: folder = self.settings.input_path
+        else: self.settings.input_path = folder
         self.shape_dict.clear()
         for filename in self.getGcodes(folder):
             shape = self.getShapesFromGcode(os.path.join(folder, filename))
@@ -152,6 +157,7 @@ class Api():
         """Returns a list of filenames from the given folder"""
 
         if not folder: folder = self.settings.input_path
+        else: self.settings.input_path = folder
         gcode_files = []
         for item in os.listdir(folder):
             if os.path.isfile(os.path.join(folder, item)):

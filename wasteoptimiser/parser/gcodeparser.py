@@ -242,7 +242,7 @@ if __name__ == "__main__":
    l.log("Logger ready")
 
    gcode = None
-   with open("../../gcode/dick.nc", 'r') as f:
+   with open("../../gcode/6-drzak_2.nc", 'r') as f:
       gcode = f.read()
 
    #print(split_gcode(gcode))
