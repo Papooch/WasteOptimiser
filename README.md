@@ -1,5 +1,5 @@
 # WasteOptimiser
-This project is a part of my Master's thesis: __Software for efficient use of material in 2D machining__.
+This project is a part of my Master's thesis: [__Software for efficient use of material in 2D machining__](https://dspace.vutbr.cz/handle/11012/191851).
 
 It implements a shape nesting algorithm and can be used as a GUI app, or you can use the underlying API to leverage the algorithms themselves.
 
@@ -48,9 +48,13 @@ Then, build it with your favourite compiler. After that, you need to place the b
 ## Running the app
 ### GUI
 If you have installed PyQt5 and matplotlib, you can launch the GUI from the parent folder of `wasteoptimiser` with
-```
+``` bash
+# by running the module as a script
 python -m wasteoptimiser
+# or simply by using the provided run script
+python run.py
 ```
+
 ![GUI](/screenshots/gui1.png)
 
 In the _Input_ section, you can then browse to a folder with your g-codes, the parser will then try to parse each file as g-code and display the valid ones in the list. You can then select how much of each shape you want to place and whether to use the shape's convex hull as the reference (this is very much preferred for complicated shapes when using the "Use NFP" option in _Optimiser_, as it may take a loooong time to find a NFP for them).
@@ -122,9 +126,9 @@ my_api.placeAllSelectedShapes()
 ```
 For drawing purposes, the geometry can be extracted as list of polygons
 ``` Python
-board_polygon  = my_pi.optimiser.getBoardShape()
-holes_polygons = my_pi.optimiser.getHoles(htype='holes')
-shape_polygons = my_pi.optimiser.getHoles(htype='shapes')
+board_polygon  = my_api.optimiser.getBoardShape()
+holes_polygons = my_api.optimiser.getHoles(htype='holes')
+shape_polygons = my_a0pi.optimiser.getHoles(htype='shapes')
     # without htype returns both holes and shapes as holes
 ```
 To get the list of filenames, locations and angles for export, use

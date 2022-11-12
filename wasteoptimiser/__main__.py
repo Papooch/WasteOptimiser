@@ -29,7 +29,7 @@ if show_gui:
 
     # fast startup stuff
     try:
-        mainWindow.openFolder('D:\Ondra\Stuff\OneDrive\VUT\DP\moje\gcode')
+        mainWindow.openFolder('./shapes')
     except:
         pass
     mainWindow.applySettings()
