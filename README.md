@@ -20,6 +20,8 @@ optional dependencies:
 
 While the app itself is written in Python, a part of it relies on the [libnfporb library by Amir Hassan (kalabala)](https://github.com/kallaballa/libnfporb/) written in c++, which must be built before (see Building libnfporb), but it can be used without it, as there is a faster but way less accurate fallback algorithm in place.
 
+> License notice: `libnfporb` is published under the GPL-3.0 license, so while the code in this repository is MIT-licensed, when used with `libnpforb`, it inherits the GPL-3.0 license as well.
+
 The program also requires you to install the Shapely Python library, which is available through PyPi, but still has to be [built from source](https://github.com/Toblerity/Shapely), or the binary can be downloaded from [here (Windows only)](https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely) and installed manually. If you use Anaconda, it can be also easily installed using `conda install shapely`.
 
 ------------
